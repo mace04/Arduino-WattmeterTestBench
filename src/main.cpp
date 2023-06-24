@@ -45,8 +45,8 @@ Ratio 2.5238
                                             // Calculation: (Total Port Read in Volts/sensor sensitivity V/A)/Total Points
 #define VOLTSENSOR_OFFSET   15              // Reading value from voltage Divider at 0V
 #define VOLTSENSOR_VPP      0.1741   // Voltage Divider output voltage per point
-#undef  EXPORT_VALUES
 
+#undef  EXPORT_VALUES
 #undef _DEBUG_
 
 #define PIN_VIN                     A3
@@ -159,32 +159,15 @@ void loop() {
 
     //int batMonPin = A4;    // input pin for the voltage divider
     int batVal = 0;       // variable for the A/D value
-    float pinVoltage = 0; // variable to hold the calculated voltage
-    float batteryVoltage = 0;
 
     //int analogInPin = A0;  // Analog input pin that the carrier board OUT is connected to
     int sensorValue = 0;        // value read from the carrier board
-    long outputValue = 0;        // output in milliamps
-    unsigned long msec = 0;
-    float time = 0.0;
-    int sample = 0;
-    float totalCharge = 0.0;
-    float averageAmps = 0.0;
-    float ampSeconds = 0.0;
-    float ampHours = 0.0;
-    float wattHours = 0.0;
-    float amps = 0.0;
 
     float R1 = 47000.00; // 11660; // Resistance of R1 in ohms
     float R2 = 10000.00; // 4620; // Resistance of R2 in ohms
 
-    float ratio = 0;  // Calculated from R1 / R2
-
     int sampleBVal = 0;
-    int avgBVal = 0;
     long sampleAmpVal = 0;
-    long avgSAV = 0;
-    long thrust = 0;
  
     if (saveSettings) {
         writeEepromSettings(settings);
@@ -800,7 +783,7 @@ void settingsValues() {
 }
 bool throttleCheck = true;
 void calibrationValues() {
-    bool okToContinue = false;
+
     if (settingEditMode) {
         if (millis() - settingEditBlinkTimer > 500) {
             blink = !blink;
