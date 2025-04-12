@@ -7,15 +7,35 @@
 Settings settings; // Create an instance of the Settings class
 MotorControl motorControl; // Create an instance of the MotorControl class
 
+float voltage = 0.0; // Variable to store voltage reading
+float current = 0.0; // Variable to store current reading
+int thrust = 0; // Variable to store thrust reading
+float mAh = 0.0; // Variable to store accumulated mAh
+
 // Task handles
 TaskHandle_t core0TaskHandle = NULL;
 TaskHandle_t core1TaskHandle = NULL;
 
 // Task running on Core 0
 void core0Task(void *parameter) {
+    unsigned long lastTime = millis(); // Track the last time the mAh calculation was updated
+
     while (true) {
         handleWebServer(); // Handle web server requests
-        delay(50); // Delay to prevent task starvation
+
+        if (motorControl.isRunning()) {
+            voltage = readVoltageSensor(); // Read voltage sensor
+            current = readCurrentSensor(); // Read current sensor
+            thrust = readWeightSensor(); // Read thrust sensor
+
+            // Calculate mAh
+            unsigned long currentTime = millis();
+            float elapsedTimeHours = (currentTime - lastTime) / 3600000.0; // Convert elapsed time to hours
+            mAh += current * elapsedTimeHours; // Accumulate mAh
+            lastTime = currentTime; // Update the last time
+        }
+
+        delay(10); // Delay to prevent task starvation
     }
 }
 
