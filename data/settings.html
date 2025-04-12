@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Test Settings</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="index.js" defer></script>
+</head>
+<body>
+    <h1>Motor Test Settings</h1>
+    <form method="POST" action="/settings">
+        <div class="text-center">
+            <h2>WiFi Settings</h2>
+        </div>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="ssid">SSID:</label>
+                <input type="text" id="ssid" name="ssid" value="{{SSID}}">
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" value="{{PASSWORD}}">
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2>Voltage Sensor</h2>
+        </div>
+        <div class="form-container">
+                <div class="form-group">
+                <label for="voltsPerPointVoltage">Volts Per Point (Voltage):</label>
+                <input type="number" id="voltsPerPointVoltage" name="voltsPerPointVoltage" value="{{VOLTS_PER_POINT_VOLTAGE}}" step="0.00001">
+            </div>
+            <div class="form-group">
+                <label for="voltageOffset">Voltage Offset:</label>
+                <input type="number" id="voltageOffset" name="voltageOffset" value="{{VOLTAGE_OFFSET}}" step="0.00001">
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2>Current Sensor</h2>
+        </div>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="voltsPerPointCurrent">Volts Per Point (Current):</label>
+                <input type="number" id="voltsPerPointCurrent" name="voltsPerPointCurrent" value="{{VOLTS_PER_POINT_CURRENT}}" step="any">
+            </div>
+            <div class="form-group">
+                <label for="currentOffset">Current Offset:</label>
+                <input type="number" id="currentOffset" name="currentOffset" value="{{CURRENT_OFFSET}}" step="any">
+            </div>
+            <div class="form-group">
+                <label for="maxCurrent">Max Current:</label>
+                <input type="number" id="maxCurrent" name="maxCurrent" value="{{MAX_CURRENT}}">
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2>Thrust Sensor</h2>
+        </div>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="thrustOffset">Thrust Offset:</label>
+                <input type="number" id="thrustOffset" name="thrustOffset" value="{{THRUST_OFFSET}}" step="any">
+            </div>
+            <div class="form-group">
+                <label for="maxThrust">Max Thrust:</label>
+                <input type="number" id="maxThrust" name="maxThrust" value="{{MAX_THRUST}}">
+            </div>
+        </div>
+
+        <div class="text-center">
+            <h2>Test Settings</h2>
+        </div>
+        <div class="form-container">
+            <div class="form-group">
+                <label for="testPhaseDuration">Test Phase Duration (seconds):</label>
+                <input type="number" id="testPhaseDuration" name="testPhaseDuration" value="{{TEST_PHASE_DURATION}}">
+            </div>
+        </div>
+        <button type="submit">Save</button>
+    </form>
+</body>
+</html>

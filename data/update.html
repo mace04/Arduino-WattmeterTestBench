@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Firmware</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Update Firmware</h1>
+    <form method="POST" action="/update" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="firmware">Select Firmware BIN File:</label>
+            <input type="file" id="firmware" name="firmware" accept=".bin" required>
+        </div>
+        <button type="submit">Update</button>
+    </form>
+</body>
+</html>
