@@ -1,5 +1,9 @@
 #include "sensors.h"
 #include "HX711.h"
+#include "Settings.h" // Include Settings.h to use the Settings class
+
+// Declare the global settings object from main.cpp
+extern Settings settings;
 
 // HX711 instance
 HX711 scale;
@@ -14,7 +18,9 @@ int currentIndex = 0;
 float readVoltageSensor() {
     int rawADC = analogRead(VOLTAGE_SENSOR_PIN);
     float voltage = rawADC * (3.3 / 4095.0); // Convert ADC value to voltage
-    voltage /= VOLTAGE_DIVIDER_RATIO;        // Adjust for voltage divider
+
+    // Calculate adjusted voltage using voltsPerPointVoltage and voltageOffset from settings
+    voltage = (voltage / settings.getVoltsPerPointVoltage()) + settings.getVoltageOffset();
 
     // Update running average
     voltageReadings[voltageIndex] = voltage;
@@ -32,8 +38,8 @@ float readCurrentSensor() {
     int rawADC = analogRead(CURRENT_SENSOR_PIN);
     float voltage = rawADC * (3.3 / 4095.0); // Convert ADC value to voltage
 
-    // ACS758KCB-150B-PFF-T sensitivity: 20mV/A, zero current at 2.5V
-    float current = (voltage - 2.5) / 0.02;
+    // Calculate current using voltsPerPointCurrent and currentOffset from settings
+    float current = (voltage / settings.getVoltsPerPointCurrent()) + settings.getCurrentOffset();
 
     // Update running average
     currentReadings[currentIndex] = current;
@@ -59,5 +65,10 @@ float readWeightSensor() {
         Serial.println("HX711 not ready");
         return 0.0;
     }
-    return scale.get_units(10); // Average over 10 readings
+
+    // Read raw weight and adjust using the weight offset from settings
+    float rawWeight = scale.get_units(10); // Average over 10 readings
+    float adjustedWeight = rawWeight + settings.getThrustOffset();
+
+    return adjustedWeight;
 }
