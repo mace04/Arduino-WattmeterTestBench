@@ -23,6 +23,9 @@ MotorControl::MotorControl() {
     autoTestEnabled = false; // Initialize auto test enabled to false
     running = false; // Initialize running to false
     runningMode = MANUAL; // Default running mode is MANUAL
+}
+
+void MotorControl::init(){
     pinMode(THROTTLE_CONTROL_PIN, INPUT);
     pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
     pinMode(ESC_OUTPUT_PIN, OUTPUT);

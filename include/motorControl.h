@@ -16,6 +16,7 @@ public:
     MotorControl();
 
     // Functions
+    void init(); // Initialize the motor control
     void setThrottleCut(bool cut);
     int setThrottle(); // Reads throttle control from pin
     int setThrottle(int percent); // Sets throttle using a parameter
