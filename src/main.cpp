@@ -53,13 +53,11 @@ void setup() {
     Serial.begin(115200);
     Serial.printf("Flash size: %i MB\n", ESP.getFlashChipSize() / (1024 * 1024));
 
-    // Initialize pins
-    pinMode(VOLTAGE_SENSOR_PIN, INPUT); // Set voltage sensor pin as input  
-    pinMode(CURRENT_SENSOR_PIN, INPUT); // Set current sensor pin as input
-
     // Initialize settings, weight sensor, WiFi, and web server
     // initWeightSensor(HX711_DT_PIN, HX711_SCK_PIN); // Initialize weight sensor
     settings.loadSettings();
+    motorControl.init(); // Initialize motor control
+    initSensors(); // Initialize sensors
     initWiFi(settings.getSSID().c_str(), settings.getPassword().c_str());
     initWebServer(settings);
 
