@@ -14,6 +14,7 @@
 const int AVERAGE_WINDOW_SIZE = 10;
 
 // Function prototypes
+void initSensors();
 float readVoltageSensor();
 float readCurrentSensor();
 void resetWeightSensor();
