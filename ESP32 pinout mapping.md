@@ -1,24 +1,17 @@
-#ifndef WEBSERVERHANDLER_Hout mapping to integrate to the following components
-#define WEBSERVERHANDLER_H Colour Touch Panel with touch sensor and SD Card
-* analog Voltage sensor input
-#include <WiFi.h>Sensor input
-#include <ESPAsyncWebServer.h>
-#include <SPIFFS.h>ontrol input
-#include <SD.h>t
-#include <ArduinoJson.h>
-#include "Settings.h"
-#include "sensors.h"
+Got it! Here’s your **updated ESP32 pinout mapping** with the **Throttle Cut** now using **GPIO0** and the **HX711 Weight Sensor Data (DT)** now using **GPIO22**:
+
+### **Pinout Mapping**
 | **Component**              | **ESP32 Pin**       | **Function**              | **Purpose** |
-// Function declarations-----|---------------------|--------------------------|-------------|
-void initWiFi(const char* ssid, const char* password);wer                   | Powers the display |
-void initWebServer(Settings& settings);           | Ground                  | Common ground connection |
-void handleOTAUpdate(AsyncWebServerRequest* request);hip Select             | Activates the TFT module |
-void handleFileAccess(AsyncWebServerRequest* request);ta/Command            | Selects between command and data transmission |
-void handleRealtimeStreaming(AsyncWebServerRequest* request);               | Resets the TFT display |
-void handleGetSettings(AsyncWebServerRequest* request);te Strobe            | Signals a write operation to the TFT |
-void handlePostSettings(AsyncWebServerRequest* request, Settings& settings);| Signals a read operation from the TFT |
+|----------------------------|---------------------|--------------------------|-------------|
+| **TFT LCD - VCC**          | 3.3V               | Power                   | Powers the display |
+| **TFT LCD - GND**          | GND                | Ground                  | Common ground connection |
+| **TFT LCD - CS**           | GPIO5              | Chip Select             | Activates the TFT module |
+| **TFT LCD - DC**           | GPIO4              | Data/Command            | Selects between command and data transmission |
+| **TFT LCD - RESET**        | GPIO16             | Reset                   | Resets the TFT display |
+| **TFT LCD - WR**           | GPIO17             | Write Strobe            | Signals a write operation to the TFT |
+| **TFT LCD - RD**           | GPIO21             | Read Strobe             | Signals a read operation from the TFT |
 | **TFT LCD - D0 to D7**     | GPIO12, GPIO13, GPIO26, GPIO25, GPIO27, GPIO14, GPIO33, GPIO32 | Parallel Data Bus | Sends image data to the TFT |
-#endif // WEBSERVERHANDLER_H | GPIO18             | SPI Clock (Shared with SD) | Synchronizes touchscreen data transfer |
+| **Touchscreen - T_CLK**    | GPIO18             | SPI Clock (Shared with SD) | Synchronizes touchscreen data transfer |
 | **Touchscreen - T_CS**     | GPIO15             | Touch Chip Select       | Activates touchscreen module |
 | **Touchscreen - T_DIN**    | GPIO23             | SPI Data In (Shared with SD) | Receives data from the touchscreen |
 | **Touchscreen - T_DO**     | GPIO19             | SPI Data Out (Shared with SD) | Sends data to the touchscreen |
@@ -30,10 +23,11 @@ void handlePostSettings(AsyncWebServerRequest* request, Settings& settings);| Si
 | **Voltage Sensor**         | GPIO34             | Analog Input (ADC1)     | Reads voltage measurements |
 | **Current Sensor**         | GPIO35             | Analog Input (ADC1)     | Reads current measurements |
 | **Throttle Control**       | GPIO39             | Analog Input (ADC1)     | Reads throttle position |
-| **HX711 - DT**             | GPIO22             | Digital Input (Unique)  | Emergency stop signal |
+| **Throttle Cut**           | GPIO0              | Digital Input (Unique)  | Emergency stop signal |
 | **ESC Output (PWM)**       | GPIO3              | PWM Output (Unique)     | Controls motor speed via ESC |
-| **Throttle Cut**           | GPIO0              | Weigh sensor data       | Weight sensor data |
-| **HX711 - SCK**            | GPIO1              | Weigh Sensor clock      | Weight sensor clock |
+| **HX711 - DT**             | GPIO22             | Weight Sensor Data      | Weight measurement input |
+| **HX711 - SCK**            | GPIO1              | Weight Sensor Clock     | Weight sensor clock |
+
 
 
 # Sensors 
@@ -118,6 +112,19 @@ change WebServerHandler files to add capabilitie for OTA firmware update with th
         * when upload is finished perform an update of firmware 
         * determine if the update was a success or failure
         * restart the ESP 
+
+Create a main menu screen file for a Starbun Parallel 3.5" TFT LCD Colour Touch Panel with the follwing requirements
+    * Use LVGL library
+    * initalise TFT panel using pinout table from "ESP32 pinout mapping.md" file
+    * Background colour set to NAVY
+    * A menu option for Start Manual Test
+    * A menu option for Start Auto Test
+    * A menu option for About
+    * Menu options should be buttons that can be selected by touch
+    * Determining menu selection should be in separate function 
+    * Button colour should be green with an black outline
+    * Buttons colour should changed to red when pressed
+    * Remove button handle event after one of the buttons is pressed
 
 
 
