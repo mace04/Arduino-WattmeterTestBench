@@ -1,33 +1,69 @@
-Got it! Here’s your **updated ESP32 pinout mapping** with the **Throttle Cut** now using **GPIO0** and the **HX711 Weight Sensor Data (DT)** now using **GPIO22**:
+### **Updated ESP32 Pin Mapping**
+| **Panel Pin**       | **ESP32 Pin**  | **Function**           | **Purpose** |
+|---------------------|----------------|------------------------|-------------|
+| **LCD_RST**         | GPIO16         | Reset                  | Resets the TFT display |
+| **LCD_CS (YP)**     | GPIO5          | Chip Select / Y+ (ADC) | Activates TFT module / Y-axis touch input |
+| **LCD_RS (XM)**     | GPIO4          | Data/Command / X-      | Selects between command/data / X-axis touch control |
+| **LCD_WR**          | GPIO17         | Write Strobe           | Signals a write operation to the TFT |
+| **LCD_RD**          | GPIO21         | Read Strobe            | Signals a read operation from the TFT |
+| **5V**              | 5V             | Power                  | Powers the display |
+| **GND**             | GND            | Ground                 | Common ground connection |
+| **3V3**             | 3.3V           | Power                  | Alternative power supply if required |
+| **LCD_D0 (XP)**     | GPIO12         | Parallel Data Bus / X+ | Pixel data transfer / X-axis touch input |
+| **LCD_D1 (YM)**     | GPIO13         | Parallel Data Bus / Y- | Pixel data transfer / Y-axis touch control |
+| **LCD_D2**          | GPIO26         | Parallel Data Bus      | Pixel data transfer |
+| **LCD_D3**          | GPIO25         | Parallel Data Bus      | Pixel data transfer |
+| **LCD_D4**          | GPIO27         | Parallel Data Bus      | Pixel data transfer |
+| **LCD_D5**          | GPIO14         | Parallel Data Bus      | Pixel data transfer |
+| **LCD_D6**          | GPIO33         | Parallel Data Bus      | Pixel data transfer |
+| **LCD_D7**          | GPIO32         | Parallel Data Bus      | Pixel data transfer |
+| **SD_SS**           | GPIO2          | SD Card Chip Select    | Activates SD card module |
+| **SD_DI (MOSI)**    | GPIO23         | SPI MOSI               | Sends data to SD card |
+| **SD_DO (MISO)**    | GPIO19         | SPI MISO               | Receives data from SD card |
+| **SD_SCK**          | GPIO18         | SPI Clock              | Synchronizes SD card data transfer |
+| **Voltage Sensor**  | GPIO34         | Analog Input (ADC1)    | Reads voltage measurements |
+| **Current Sensor**  | GPIO35         | Analog Input (ADC1)    | Reads current measurements |
+| **Throttle Control**| GPIO39         | Analog Input (ADC1)    | Reads throttle position |
+| **Throttle Cut**    | GPIO0          | Digital Input (Unique) | Emergency stop signal |
+| **ESC Output (PWM)**| GPIO3          | PWM Output (Unique)    | Controls motor speed via ESC |
+| **HX711 - DT**      | GPIO22         | Weight Sensor Data     | Weight measurement input |
+| **HX711 - SCK**     | GPIO1          | Weight Sensor Clock    | Weight sensor clock |
 
-### **Pinout Mapping**
-| **Component**              | **ESP32 Pin**       | **Function**              | **Purpose** |
-|----------------------------|---------------------|--------------------------|-------------|
-| **TFT LCD - VCC**          | 3.3V               | Power                   | Powers the display |
-| **TFT LCD - GND**          | GND                | Ground                  | Common ground connection |
-| **TFT LCD - CS**           | GPIO5              | Chip Select             | Activates the TFT module |
-| **TFT LCD - DC**           | GPIO4              | Data/Command            | Selects between command and data transmission |
-| **TFT LCD - RESET**        | GPIO16             | Reset                   | Resets the TFT display |
-| **TFT LCD - WR**           | GPIO17             | Write Strobe            | Signals a write operation to the TFT |
-| **TFT LCD - RD**           | GPIO21             | Read Strobe             | Signals a read operation from the TFT |
-| **TFT LCD - D0 to D7**     | GPIO12, GPIO13, GPIO26, GPIO25, GPIO27, GPIO14, GPIO33, GPIO32 | Parallel Data Bus | Sends image data to the TFT |
-| **Touchscreen - T_CLK**    | GPIO18             | SPI Clock (Shared with SD) | Synchronizes touchscreen data transfer |
-| **Touchscreen - T_CS**     | GPIO15             | Touch Chip Select       | Activates touchscreen module |
-| **Touchscreen - T_DIN**    | GPIO23             | SPI Data In (Shared with SD) | Receives data from the touchscreen |
-| **Touchscreen - T_DO**     | GPIO19             | SPI Data Out (Shared with SD) | Sends data to the touchscreen |
-| **Touchscreen - T_IRQ**    | GPIO36             | Touch Interrupt         | Detects touch events |
-| **SD Card - SD_SCK**       | GPIO18             | SPI Clock (Shared with Touchscreen) | Synchronizes SD card data transfer |
-| **SD Card - SD_MISO**      | GPIO19             | SPI MISO (Shared with Touchscreen) | Sends data from SD card to ESP32 |
-| **SD Card - SD_MOSI**      | GPIO23             | SPI MOSI (Shared with Touchscreen) | Sends data from ESP32 to SD card |
-| **SD Card - SD_CS**        | GPIO2              | Chip Select (Unique)    | Activates SD card module |
-| **Voltage Sensor**         | GPIO34             | Analog Input (ADC1)     | Reads voltage measurements |
-| **Current Sensor**         | GPIO35             | Analog Input (ADC1)     | Reads current measurements |
-| **Throttle Control**       | GPIO39             | Analog Input (ADC1)     | Reads throttle position |
-| **Throttle Cut**           | GPIO0              | Digital Input (Unique)  | Emergency stop signal |
-| **ESC Output (PWM)**       | GPIO3              | PWM Output (Unique)     | Controls motor speed via ESC |
-| **HX711 - DT**             | GPIO22             | Weight Sensor Data      | Weight measurement input |
-| **HX711 - SCK**            | GPIO1              | Weight Sensor Clock     | Weight sensor clock |
 
+Define mapping to ESP32 devkit for the Starbun TFT LCD Color Touch Panel 3.5" TFT LCD Module 480x320 with the following pins on the panel
+    * LCD_RST
+    * LCD_CS
+    * LCD_RS
+    * LCD_WR
+    * LCD_RD
+    * 5V
+    * GND
+    * 3V3
+    * LCD_D0
+    * LCD_D1
+    * LCD_D2
+    * LCD_D3
+    * LCD_D4
+    * LCD_D5
+    * LCD_D6
+    * LCD_D7
+    * SD_SS
+    * SD_DI
+    * SD_DO
+    * SD_SCK
+Also, the touchscreen uses the below pins from the above defined pins
+    * LCD_CS as YP
+    * LCD_RS as XM
+    * LCD_D1 as YM
+    * LCD0 as XP
+Finally add the following requirements in the mapping
+    * Analog input for voltage sensor
+    * Analog input for current sensor
+    * Analog input for throttle control
+    * Digital input for throttle cut
+    * PWM output for ESC control
+    * DT for HX711 sensor
+    * SCK for HX711 sensor
 
 
 # Sensors 
@@ -113,18 +149,21 @@ change WebServerHandler files to add capabilitie for OTA firmware update with th
         * determine if the update was a success or failure
         * restart the ESP 
 
-Create a main menu screen file for a Starbun Parallel 3.5" TFT LCD Colour Touch Panel with the follwing requirements
-    * Use LVGL library
-    * initalise TFT panel using pinout table from "ESP32 pinout mapping.md" file
+Create a main menu screen class TftMainMenu for a Starbun Parallel 3.5" TFT LCD Colour Touch Panel with the follwing requirements
+    * Use MCUFRIEND_kbv and Adafruit TouchScreen libraries
+    * accept tft panel and touchscreen as parameters in contructor
     * Background colour set to NAVY
+    * Menu options should be buttons that can be selected by touch
     * A menu option for Start Manual Test
     * A menu option for Start Auto Test
     * A menu option for About
-    * Menu options should be buttons that can be selected by touch
     * Determining menu selection should be in separate function 
+    * Introduce a debounce capability to detect continuous press on buttons
+    * Add a capability to change to a different screen using the TftScreenMode enum when a button is pressed. This should instruct the core0Task to call the init method of a different class
     * Button colour should be green with an black outline
     * Buttons colour should changed to red when pressed
-    * Remove button handle event after one of the buttons is pressed
+    * Button dimensions, positions and colours should be private variables within the class and no accessible outside the class scope
+
 
 
 
