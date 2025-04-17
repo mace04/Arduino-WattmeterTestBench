@@ -1,13 +1,13 @@
-#ifndef TFT_MAIN_MENU_H 
-#define TFT_MAIN_MENU_H 
-#include <Arduino.h>
+#ifndef TFT_MAIN_MENU_H
+#define TFT_MAIN_MENU_H
+
 #include <MCUFRIEND_kbv.h>
 #include <TouchScreen.h>
 #include "tft_config.h"
 
 class TftMainMenu {
 public:
-    TftMainMenu(MCUFRIEND_kbv& tft, TouchScreen& ts);
+    TftMainMenu(MCUFRIEND_kbv& tft, TouchScreen& ts, void (*screenChangeCallback)(TftScreenMode));
     void init();
     void handleTouch();
 

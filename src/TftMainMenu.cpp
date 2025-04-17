@@ -1,15 +1,17 @@
 #include "TftMainMenu.h"
 
-TftMainMenu::TftMainMenu(MCUFRIEND_kbv& tft, TouchScreen& ts)
-    : tft(tft), ts(ts) {
-        buttons[0] = {buttonX, buttonYStart, buttonWidth, buttonHeight, "Start Manual Test", MANUAL_TEST, false};
-        buttons[1] = {buttonX, buttonYStart + buttonHeight + buttonSpacing, buttonWidth, buttonHeight, "Start Auto Test", AUTO_TEST, false};
-        buttons[2] = {buttonX, buttonYStart + 2 * (buttonHeight + buttonSpacing), buttonWidth, buttonHeight, "About", ABOUT, false};
-    }
+TftMainMenu::TftMainMenu(MCUFRIEND_kbv& tft, TouchScreen& ts, void (*screenChangeCallback)(TftScreenMode))
+    : tft(tft), ts(ts), screenChangeCallback(screenChangeCallback) {
+    buttons[0] = {buttonX, buttonYStart, buttonWidth, buttonHeight, "Start Manual Test", MANUAL_TEST, false};
+    buttons[1] = {buttonX, buttonYStart + buttonHeight + buttonSpacing, buttonWidth, buttonHeight, "Start Auto Test", AUTO_TEST, false};
+    buttons[2] = {buttonX, buttonYStart + 2 * (buttonHeight + buttonSpacing), buttonWidth, buttonHeight, "About", ABOUT, false};
+}
 
 void TftMainMenu::init() {
     tft.fillScreen(TFT_NAVY);
 
+    Serial.println("Initializing TFT Main Menu...");
+    
     // Draw all buttons
     for (int i = 0; i < 3; i++) {
         drawButton(buttons[i]);

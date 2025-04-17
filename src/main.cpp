@@ -9,11 +9,13 @@
 #include "tft_config.h"
 #include "TftMainMenu.h"
 
+void changeScreen(TftScreenMode newScreen);
+
 Settings settings; // Create an instance of the Settings class
 MotorControl motorControl; // Create an instance of the MotorControl class
 MCUFRIEND_kbv tft;
 TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-TftMainMenu mainMenu(tft, ts); // Create an instance of the TftMainMenu class
+TftMainMenu mainMenu(tft, ts, changeScreen); // Create an instance of the TftMainMenu class
 
 float voltage = 0.0; // Variable to store voltage reading
 float current = 0.0; // Variable to store current reading
@@ -100,10 +102,16 @@ void setup() {
     uint16_t id = tft.readID();
     Serial.print("TFT Device ID: 0x");
     Serial.println(id, HEX);
-    tft.begin(id);
+    tft.begin(id); // Initialize the TFT display with the correct ID
     tft.setRotation(1);     //Landscape
     tft.invertDisplay(true);
     Serial.println("TFT Device Initialised");
+
+    pinMode(17, OUTPUT); // WR
+    pinMode(21, OUTPUT); // RD
+    digitalWrite(17, LOW); // Force WR signal
+tft.fillScreen(TFT_RED);
+delay(1000);
 
     // Initialize settings, weight sensor, WiFi, and web server
     // initWeightSensor(HX711_DT_PIN, HX711_SCK_PIN); // Initialize weight sensor
