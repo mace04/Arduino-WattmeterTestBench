@@ -1,6 +1,6 @@
-### **Updated ESP32 Pin Mapping**
-| **Panel Pin**       | **ESP32 Pin**  | **Function**           | **Purpose** |
-|---------------------|----------------|------------------------|-------------|
+### **ESP32 Pin Mapping**
+| **Panel Pin**        | **ESP32 Pin**  | **Function**            | **Purpose** |
+|----------------------|---------------|------------------------|-------------|
 | **LCD_RST**         | GPIO16         | Reset                  | Resets the TFT display |
 | **LCD_CS (YP)**     | GPIO5          | Chip Select / Y+ (ADC) | Activates TFT module / Y-axis touch input |
 | **LCD_RS (XM)**     | GPIO4          | Data/Command / X-      | Selects between command/data / X-axis touch control |
@@ -24,13 +24,13 @@
 | **Voltage Sensor**  | GPIO34         | Analog Input (ADC1)    | Reads voltage measurements |
 | **Current Sensor**  | GPIO35         | Analog Input (ADC1)    | Reads current measurements |
 | **Throttle Control**| GPIO39         | Analog Input (ADC1)    | Reads throttle position |
-| **Throttle Cut**    | GPIO0          | Digital Input (Unique) | Emergency stop signal |
+| **Throttle Cut**    | GPIO15         | Digital Input (Unique) | Emergency stop signal |
 | **ESC Output (PWM)**| GPIO3          | PWM Output (Unique)    | Controls motor speed via ESC |
 | **HX711 - DT**      | GPIO22         | Weight Sensor Data     | Weight measurement input |
 | **HX711 - SCK**     | GPIO1          | Weight Sensor Clock    | Weight sensor clock |
 
 
-Define mapping to ESP32 devkit for the Starbun TFT LCD Color Touch Panel 3.5" TFT LCD Module 480x320 with the following pins on the panel
+Define mapping to ESP32 devkit v1 for the Starbun TFT LCD Color Touch Panel 3.5" TFT LCD Module 480x320 with the following pins on the panel
     * LCD_RST
     * LCD_CS
     * LCD_RS
@@ -64,6 +64,35 @@ Finally add the following requirements in the mapping
     * PWM output for ESC control
     * DT for HX711 sensor
     * SCK for HX711 sensor
+
+Define mapping to ESP32 devkit v1 for the 3.5 inch LCD TFT touch display with ili9488 chip Binghe 3.5 inch LCD display touch module with the following pins on the panel
+    * VCC
+    * GND 
+    * CS
+    * RESET
+    * C/C
+    * SDI
+    * SCK
+    * LED 
+    * SDO(MISO)
+    * T_CLK
+    * T_CS
+    * T_DIN
+    * T_OUT
+    * T_IRQ
+    * SD_CS
+    * SD_MOSI
+    * SD_MISO
+    * SD_SCK
+Also add the following requirements in the mapping
+    * Analog input for voltage sensor
+    * Analog input for current sensor
+    * Analog input for throttle control
+    * Digital input for throttle cut
+    * PWM output for ESC control
+    * DT for HX711 sensor
+    * SCK for HX711 sensor
+
 
 
 # Sensors 
@@ -149,25 +178,21 @@ change WebServerHandler files to add capabilitie for OTA firmware update with th
         * determine if the update was a success or failure
         * restart the ESP 
 
-Create a main menu screen class TftMainMenu for a Starbun Parallel 3.5" TFT LCD Colour Touch Panel with the follwing requirements
+
+Create a class TftMainMenu for a Starbun Parallel 3.5" TFT LCD Colour Touch Panel with the follwing requirements 
     * Use MCUFRIEND_kbv and Adafruit TouchScreen libraries
-    * accept tft panel and touchscreen as parameters in contructor
-    * Background colour set to NAVY
-    * Menu options should be buttons that can be selected by touch
-    * A menu option for Start Manual Test
-    * A menu option for Start Auto Test
-    * A menu option for About
-    * Determining menu selection should be in separate function 
-    * Introduce a debounce capability to detect continuous press on buttons
-    * Add a capability to change to a different screen using the TftScreenMode enum when a button is pressed. This should instruct the core0Task to call the init method of a different class
-    * Button colour should be green with an black outline
-    * Buttons colour should changed to red when pressed
-    * Button dimensions, positions and colours should be private variables within the class and no accessible outside the class scope
-
-
-
-
-
-
+    * For UX
+        * Background colour set to NAVY
+        * Menu options should be buttons that can be selected by touch
+        * A menu option for Start Manual Test
+        * A menu option for Start Auto Test
+        * A menu option for About
+        * Button colour should be green with an black outline
+        * Buttons colour should changed to red when pressed
+    * The class should have the following capabilities
+        * accept tft panel and touchscreen as parameters in contructor
+        * Determining menu selection should be in separate function 
+        * Ability  to change to a different screen using the TftScreenMode enum when a button is pressed. This should instruct the core0Task to call the init method of a different class
+        * Introduce a debounce capability to detect continuous press on buttons
 
 
