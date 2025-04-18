@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include <MCUFRIEND_kbv.h>
-#include <TouchScreen.h>
 #include <SD.H>
 #include "sensors.h"
 #include "motorControl.h"
@@ -13,9 +11,9 @@ void changeScreen(TftScreenMode newScreen);
 
 Settings settings; // Create an instance of the Settings class
 MotorControl motorControl; // Create an instance of the MotorControl class
-MCUFRIEND_kbv tft;
-TouchScreen ts = TouchScreen(XP, YP, XM, YM, 300);
-TftMainMenu mainMenu(tft, ts, changeScreen); // Create an instance of the TftMainMenu class
+TFT_eSPI tft = TFT_eSPI();
+XPT2046_Touchscreen ts(TOUCH_CS, TOUCH_IRQ);
+TftScreenMode currentScreen = MAIN_MENU;
 
 float voltage = 0.0; // Variable to store voltage reading
 float current = 0.0; // Variable to store current reading
@@ -26,6 +24,9 @@ float mAh = 0.0; // Variable to store accumulated mAh
 TaskHandle_t core0TaskHandle = NULL;
 TaskHandle_t core1TaskHandle = NULL;
 
+TftMainMenu tftMainMenu(tft, ts, changeScreen);
+
+
 // Callback function to handle screen changes
 void changeScreen(TftScreenMode newScreen) {
 
@@ -33,7 +34,6 @@ void changeScreen(TftScreenMode newScreen) {
         case MAIN_MENU:
             Serial.println("Switching to Main Menu Screen");
             // Call the init method of the Manual Test class
-            mainMenu.init();
             break;
 
         case MANUAL_TEST:
@@ -88,7 +88,11 @@ void core1Task(void *parameter) {
     while (true) {
         // Add your sensor reading or motor control logic here
         // Example: motorControl.update();
-        delay(50); // Delay to prevent task starvation
+    // Handle touch input
+        if (currentScreen == MAIN_MENU) {
+            tftMainMenu.handleTouch();
+        }        
+        delay(10); // Delay to prevent task starvation
     }
 }
 
@@ -98,20 +102,29 @@ void setup() {
     Serial.printf("Flash size: %i MB\n", ESP.getFlashChipSize() / (1024 * 1024));
     Serial.println();
 
-    tft.reset();
-    uint16_t id = tft.readID();
-    Serial.print("TFT Device ID: 0x");
-    Serial.println(id, HEX);
-    tft.begin(id); // Initialize the TFT display with the correct ID
-    tft.setRotation(1);     //Landscape
-    tft.invertDisplay(true);
+    // Initialise TFT touch screen
+    tft.init();
+    tft.setRotation(1); // Adjust as needed
+
+    // Initialize touchscreen
+    ts.begin();
+    ts.setRotation(1);
+
+    tft.fillScreen(TFT_BLACK);
+    // Test display colors
+    tft.fillScreen(TFT_RED);
+    delay(1000);
+    tft.fillScreen(TFT_GREEN);
+    delay(1000);
+    tft.fillScreen(TFT_BLUE);
+    delay(1000);
+
+    // Display test message
+    tft.setTextColor(TFT_WHITE);
+    tft.setTextSize(2);
+    tft.setCursor(50, 50);
     Serial.println("TFT Device Initialised");
 
-    pinMode(17, OUTPUT); // WR
-    pinMode(21, OUTPUT); // RD
-    digitalWrite(17, LOW); // Force WR signal
-tft.fillScreen(TFT_RED);
-delay(1000);
 
     // Initialize settings, weight sensor, WiFi, and web server
     // initWeightSensor(HX711_DT_PIN, HX711_SCK_PIN); // Initialize weight sensor
@@ -143,8 +156,7 @@ delay(1000);
     );
 
     Serial.println("Setup complete. Tasks started on both cores.");
-
-    mainMenu.init(); // Initialize the TFT main menu
+    tftMainMenu.init();
 }
 
 void loop() {

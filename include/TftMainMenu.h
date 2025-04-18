@@ -1,13 +1,13 @@
 #ifndef TFT_MAIN_MENU_H
 #define TFT_MAIN_MENU_H
 
-#include <MCUFRIEND_kbv.h>
-#include <TouchScreen.h>
+#include <TFT_eSPI.h>
+#include <XPT2046_Touchscreen.h>
 #include "tft_config.h"
 
 class TftMainMenu {
 public:
-    TftMainMenu(MCUFRIEND_kbv& tft, TouchScreen& ts, void (*screenChangeCallback)(TftScreenMode));
+    TftMainMenu(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode));
     void init();
     void handleTouch();
 
@@ -22,8 +22,8 @@ private:
     void drawButton(const Button& button);
     void handleMenuSelection(TftScreenMode screenMode);
 
-    MCUFRIEND_kbv& tft;
-    TouchScreen& ts;
+    TFT_eSPI& tft;
+    XPT2046_Touchscreen& ts;
     void (*screenChangeCallback)(TftScreenMode); // Callback for screen change
 
     // Private button properties
