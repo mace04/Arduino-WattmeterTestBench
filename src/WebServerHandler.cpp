@@ -1,6 +1,8 @@
 #include "WebServerHandler.h"
 
 WebServer server(80);
+extern TFT_eSPI tft;
+
 
 void initWiFi(const char* ssid, const char* password) {
     WiFi.begin(ssid, password);
@@ -92,6 +94,8 @@ void initWebServer(Settings& settings) {
         HTTPUpload& upload = server.upload();
         if (upload.status == UPLOAD_FILE_START) {
             Serial.printf("Update: %s\n", upload.filename.c_str());
+            TftUpdate tftUpdate(tft);
+            tftUpdate.init();
             if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { // Start with unknown size
                 Update.printError(Serial);
             }
