@@ -8,6 +8,7 @@
 #include <SD.h>
 #include "Settings.h"
 #include "sensors.h"
+#include "TftUpdate.h"
 
 // Function declarations
 void initWiFi(const char* ssid, const char* password);
