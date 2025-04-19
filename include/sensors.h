@@ -5,9 +5,9 @@
 
 // GPIO pin definitions
 #define VOLTAGE_SENSOR_PIN 34
-#define CURRENT_SENSOR_PIN 35
-#define HX711_DT_PIN 22
-#define HX711_SCK_PIN 01
+#define CURRENT_SENSOR_PIN 39
+#define HX711_DT_PIN 32
+#define HX711_SCK_PIN 33
 
 
 // Running average parameters

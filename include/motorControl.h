@@ -4,9 +4,9 @@
 #include <Arduino.h>
 
 // Pin definitions
-#define THROTTLE_CONTROL_PIN 39 // Pin for throttle control input
+#define THROTTLE_CONTROL_PIN 36 // Pin for throttle control input
 #define ESC_OUTPUT_PIN 3 // Pin for ESC output
-#define THROTTLE_CUT_PIN 0 // Pin for throttle cut switch
+#define THROTTLE_CUT_PIN 22 // Pin for throttle cut switch
 
 class MotorControl {
 public:
