@@ -76,10 +76,10 @@ Define mapping to ESP32 devkit v1 for the 3.5 inch LCD TFT touch display with il
     * LED 
     * SDO(MISO)
     * T_CLK
-    * T_CS
+    * TOUCH_CS
     * T_DIN
     * T_OUT
-    * T_IRQ
+    * TOUCH_IRQ
     * SD_CS
     * SD_MOSI
     * SD_MISO
@@ -180,19 +180,29 @@ change WebServerHandler files to add capabilitie for OTA firmware update with th
 
 
 Create a class TftMainMenu for a Starbun Parallel 3.5" TFT LCD Colour Touch Panel with the follwing requirements 
-    * Use MCUFRIEND_kbv and Adafruit TouchScreen libraries
+    * Use TFT_eSPI and XPT2046_Touchscreen libraries
     * For UX
         * Background colour set to NAVY
         * Menu options should be buttons that can be selected by touch
         * A menu option for Start Manual Test
         * A menu option for Start Auto Test
         * A menu option for About
+        * All buttons should be centered vertically and horizontally within the screen
+        * Button text should be centered within the boundaries of the button
         * Button colour should be green with an black outline
         * Buttons colour should changed to red when pressed
+        * Button corners should be rounded
     * The class should have the following capabilities
         * accept tft panel and touchscreen as parameters in contructor
         * Determining menu selection should be in separate function 
         * Ability  to change to a different screen using the TftScreenMode enum when a button is pressed. This should instruct the core0Task to call the init method of a different class
         * Introduce a debounce capability to detect continuous press on buttons
 
-
+Create a class TftUpdate class for a 3.5" TFT LCD Colour Touch Panel with the follwing requirements 
+    * Use TFT_eSPI and XPT2046_Touchscreen libraries
+    * Accept tft panel as parameter in contructor
+    * For UX
+        * Background colour set to NAVY
+        * A rounded red box appears in the center of the screen 
+        * The text "Updating Firmware" is displayed 
+        * The text displayed in the box should be centered withing the boundaries of the box
