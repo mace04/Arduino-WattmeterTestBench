@@ -1,8 +1,7 @@
 #ifndef TFT_UPDATE_H
 #define TFT_UPDATE_H
 
-#include <TFT_eSPI.h>
-
+#include  "tft_config.h"
 class TftUpdate {
 public:
     TftUpdate(TFT_eSPI& tft);

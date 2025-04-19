@@ -4,6 +4,8 @@ TftUpdate::TftUpdate(TFT_eSPI& tft) : tft(tft) {}
 
 void TftUpdate::init() {
     // Set the background color
+    setCS(PANEL); // Set CS for TFT panel
+    tft.setRotation(1); // Adjust as needed
     tft.fillScreen(backgroundColor);
 
     // Calculate the position of the box
@@ -22,4 +24,5 @@ void TftUpdate::init() {
     int textY = boxY + (boxHeight - textHeight) / 2;
     tft.setCursor(textX, textY);
     tft.print("Updating Firmware");
+    setCS(TOUCH); // Set CS for touch controller
 }

@@ -12,7 +12,7 @@ void changeScreen(TftScreenMode newScreen);
 Settings settings; // Create an instance of the Settings class
 MotorControl motorControl; // Create an instance of the MotorControl class
 TFT_eSPI tft = TFT_eSPI();
-XPT2046_Touchscreen ts(TOUCH_CS, TOUCH_IRQ);
+XPT2046_Touchscreen ts(TOUCH_CS, TOUCH_IRQ); // Touchscreen instance
 TftScreenMode currentScreen = MAIN_MENU;
 
 float voltage = 0.0; // Variable to store voltage reading
@@ -86,12 +86,10 @@ void core0Task(void *parameter) {
 // Task running on Core 1
 void core1Task(void *parameter) {
     while (true) {
-        // Add your sensor reading or motor control logic here
-        // Example: motorControl.update();
-    // Handle touch input
-        if (currentScreen == MAIN_MENU) {
-            tftMainMenu.handleTouch();
-        }        
+        if (isCSActive(TOUCH)) {
+            if (currentScreen == MAIN_MENU) {
+                tftMainMenu.handleTouch();
+            }         
         delay(10); // Delay to prevent task starvation
     }
 }
@@ -102,13 +100,23 @@ void setup() {
     Serial.printf("Flash size: %i MB\n", ESP.getFlashChipSize() / (1024 * 1024));
     Serial.println();
 
+    // Initialize CS pins
+    pinMode(TFT_CS, OUTPUT);
+    pinMode(TOUCH_CS, OUTPUT);
+    pinMode(SD_CS, OUTPUT);
+    // pinMode(TOUCH_IRQ, INPUT_PULLUP); // Set touch IRQ pin as input with pull-up resistor
+
+    // Set all CS pins to HIGH (disabled)
+    digitalWrite(TFT_CS, HIGH);
+    digitalWrite(TOUCH_CS, HIGH);
+    digitalWrite(SD_CS, HIGH);
+
     // Initialise TFT touch screen
     tft.init();
     tft.setRotation(1); // Adjust as needed
 
     // Initialize touchscreen
-    ts.begin();
-    ts.setRotation(1);
+    setCS(PANEL); // Set CS for TFT panel
 
     tft.fillScreen(TFT_BLACK);
     // Test display colors
@@ -118,21 +126,39 @@ void setup() {
     delay(1000);
     tft.fillScreen(TFT_BLUE);
     delay(1000);
-
-    // Display test message
-    tft.setTextColor(TFT_WHITE);
-    tft.setTextSize(2);
-    tft.setCursor(50, 50);
+    tft.println("TFT Device Initialised");
     Serial.println("TFT Device Initialised");
+
+    ts.begin();
+    tft.println("Touch Device Initialised");
+    Serial.println("Touch Device Initialised");
+    ts.setRotation(1);    
 
 
     // Initialize settings, weight sensor, WiFi, and web server
     // initWeightSensor(HX711_DT_PIN, HX711_SCK_PIN); // Initialize weight sensor
     settings.loadSettings();
+    tft.println("Settings Loaded");
+    Serial.println("Settings Loaded");
+
     motorControl.init(); // Initialize motor control
+    tft.println("Touch Device Initialised");
+    Serial.println("Touch Device Initialised");
+
     initSensors(); // Initialize sensors
+    tft.println("Sensors Initialised");
+    Serial.println("Sensors Initialised");
+
     initWiFi(settings.getSSID().c_str(), settings.getPassword().c_str());
+    tft.println("WiFi Initialised");
+    Serial.println("WiFi Initialised");
+
     initWebServer(settings);
+    tft.println("Web Server Initialised");
+    Serial.println("Web Server Initialised");
+
+    Serial.println("Setup complete. Tasks started on both cores.");
+    tftMainMenu.init(); // Initialize the main menu
 
     // Create tasks for each core
     xTaskCreatePinnedToCore(
@@ -154,9 +180,6 @@ void setup() {
         &core1TaskHandle,   // Task handle
         1                   // Core to run the task on (Core 1)
     );
-
-    Serial.println("Setup complete. Tasks started on both cores.");
-    tftMainMenu.init();
 }
 
 void loop() {
