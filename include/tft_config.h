@@ -17,8 +17,9 @@
 #define TFT_RST  4   // Reset
 
 // Touch Controller (XPT2046)
+#define USE_TOUCH
 #define TOUCH_CS 15
-#define TOUCH_IRQ 36  // Optional
+#define TOUCH_IRQ 35  // Optional
 
 // SD Card Configuration
 #define SD_CS   13
@@ -29,9 +30,6 @@
 // Rotation settings
 #define TFT_ROTATION 1  // Adjust for landscape/portrait mode
 
-// Enable touch support
-#define USE_TOUCH
-#define TOUCH_CS 15
 
 
 enum TftScreenMode {
@@ -43,5 +41,15 @@ enum TftScreenMode {
     // LOGGING,
     ERROR
 };
+
+// Enum for devices
+enum Device {
+    PANEL,
+    TOUCH,
+    SDCARD
+};
+
+void setCS(Device device);
+bool isCSActive(Device device);
 
 #endif
