@@ -216,7 +216,7 @@ Using TftMainMenu as a template create a class TftAbout for a 3.5" TFT LCD Colou
         * Display Firmware version
         * Display WiFi name
         * Display IP Address
-        * All texts should be centered horizontally into two column one for descriptions and one for the values
+        * Screen should be split into 6 column and display label in 2nd column as left aligned and value in column 5th column as right aligned
     * The class should have the following capabilities
         * accept tft panel and touchscreen as parameters in contructor
         * The init method should chip select PANEL at the start and TOUCH at the end using the setCS?() function in tft_config files
