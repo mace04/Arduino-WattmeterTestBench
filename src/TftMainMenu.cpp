@@ -43,10 +43,13 @@ void TftMainMenu::drawButton(const Button& button) {
     int16_t textX = button.x + (button.width - textWidth) / 2;
     int16_t textY = button.y + (button.height - textHeight) / 2;
 
-    tft.setTextColor(TFT_BLACK);
+    tft.setTextColor(TFT_BLACK,button.isPressed ? buttonPressedColor : buttonColor);
     tft.setTextSize(2);
-    tft.setCursor(textX, textY);
-    tft.print(button.label);
+    // tft.setCursor(textX, textY);
+    // tft.print(button.label);
+
+    tft.setTextDatum(TC_DATUM); // Align text to the right
+    tft.drawString(button.label, tft.width() / 2, textY);
 }
 
 void TftMainMenu::handleTouch() {
