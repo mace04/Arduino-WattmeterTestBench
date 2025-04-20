@@ -6,8 +6,10 @@
 #include "WebServerHandler.h"
 #include "tft_config.h"
 #include "TftMainMenu.h"
+#include "TftAbout.h"
+#include <WiFi.h>
 
-void changeScreen(TftScreenMode newScreen);
+void screenChangeCallback(TftScreenMode screenMode);
 
 Settings settings; // Create an instance of the Settings class
 MotorControl motorControl; // Create an instance of the MotorControl class
@@ -24,39 +26,16 @@ float mAh = 0.0; // Variable to store accumulated mAh
 TaskHandle_t core0TaskHandle = NULL;
 TaskHandle_t core1TaskHandle = NULL;
 
-TftMainMenu tftMainMenu(tft, ts, changeScreen);
-
+TftMainMenu tftMainMenu(tft, ts, screenChangeCallback);
+TftAbout tftAbout(tft, ts, screenChangeCallback);
 
 // Callback function to handle screen changes
-void changeScreen(TftScreenMode newScreen) {
-
-    switch (newScreen) {
-        case MAIN_MENU:
-            Serial.println("Switching to Main Menu Screen");
-            // Call the init method of the Manual Test class
-            break;
-
-        case MANUAL_TEST:
-            Serial.println("Switching to Manual Test Screen");
-            // Call the init method of the Manual Test class
-            // manualTest.init();
-            break;
-
-        case AUTO_TEST:
-            Serial.println("Switching to Auto Test Screen");
-            // Call the init method of the Auto Test class
-            // autoTest.init();
-            break;
-
-        case ABOUT:
-            Serial.println("Switching to About Screen");
-            // Call the init method of the About class
-            // aboutScreen.init();
-            break;
-
-        default:
-            Serial.println("Unknown screen mode");
-            break;
+void screenChangeCallback(TftScreenMode screenMode) {
+    currentScreen = screenMode;
+    if (screenMode == MAIN_MENU) {
+        tftMainMenu.init();
+    } else if (screenMode == ABOUT) {
+        tftAbout.init();
     }
 }
 
@@ -89,7 +68,10 @@ void core1Task(void *parameter) {
         if (isCSActive(TOUCH)) {
             if (currentScreen == MAIN_MENU) {
                 tftMainMenu.handleTouch();
-            }         
+            } else if (currentScreen == ABOUT) {
+                tftAbout.handleTouch();
+            }
+        }
         delay(10); // Delay to prevent task starvation
     }
 }
@@ -133,7 +115,6 @@ void setup() {
     tft.println("Touch Device Initialised");
     Serial.println("Touch Device Initialised");
     ts.setRotation(1);    
-
 
     // Initialize settings, weight sensor, WiFi, and web server
     // initWeightSensor(HX711_DT_PIN, HX711_SCK_PIN); // Initialize weight sensor

@@ -76,7 +76,7 @@ void TftMainMenu::handleTouch() {
                 handleMenuSelection(button.screenMode);
 
                 button.isPressed = false;
-                drawButton(button);
+                // drawButton(button);
             }
         }
         setCS(TOUCH); // Set CS for touch controller

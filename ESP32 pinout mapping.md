@@ -206,3 +206,20 @@ Create a class TftUpdate class for a 3.5" TFT LCD Colour Touch Panel with the fo
         * A rounded red box appears in the center of the screen 
         * The text "Updating Firmware" is displayed 
         * The text displayed in the box should be centered withing the boundaries of the box
+
+Using TftMainMenu as a template create a class TftAbout for a 3.5" TFT LCD Colour Touch Panel with the following requirements 
+    * Use TFT_eSPI and XPT2046_Touchscreen libraries
+    * For UX
+        * Background colour set to NAVY
+        * All text set to white
+        * Display the title "Motor Testbench" in bold
+        * Display Firmware version
+        * Display WiFi name
+        * Display IP Address
+        * All texts should be centered horizontally into two column one for descriptions and one for the values
+    * The class should have the following capabilities
+        * accept tft panel and touchscreen as parameters in contructor
+        * The init method should chip select PANEL at the start and TOUCH at the end using the setCS?() function in tft_config files
+        * the handleTouch method should check both the TOUCH_IRQ interrupt pin and ts.touch() for a touch  
+        * TftAbout should be displayed when the About button in TftMainMenu is pressed
+        * TftAbout should display TftMainMenu when any touch is detected anywhere inh the screen        
