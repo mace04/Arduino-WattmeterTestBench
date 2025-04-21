@@ -2,9 +2,9 @@
 
 TftMotorTest::TftMotorTest(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode))
     : tft(tft), ts(ts), screenChangeCallback(screenChangeCallback),
-      startButton{"Start", 10, 5, 80, 30, ENABLE},
-      stopButton{"Stop", 100, 5, 80, 30, DISABLE},
-      resetButton{"Reset", 190, 5, 80, 30, ENABLE},
+        startButton{"Start", 10, 5, 80, 30, ENABLE},
+        stopButton{"Stop", 100, 5, 80, 30, DISABLE},
+        resetButton{"Reset", 190, 5, 80, 30, ENABLE},
       exitButton{"Exit", tft.height() - 90, 5, 80, 30, ENABLE} {}
 
 void TftMotorTest::init(TestType testType) {
@@ -133,40 +133,38 @@ void TftMotorTest::handleTouch() {
         int y = map(p.x, 4095, 0, 0, tft.height()); // Map touch Y to screen Y
         Serial.println("Touch coordinates: " + String(x) + ", " + String(y));
 
-        if (x > 0 && y > 0) {
-            setCS(PANEL); // Set CS for TFT panel
-            // Check if Exit button is pressed
-            if (x >= exitButton.x && x <= exitButton.x + exitButton.width &&
+        setCS(PANEL); // Set CS for TFT panel
+        // Check if Exit button is pressed
+        if (x >= exitButton.x && x <= exitButton.x + exitButton.width &&
                 y >= exitButton.y && y <= exitButton.y + exitButton.height) {
                 if (screenChangeCallback) {
-                    Serial.println("Exit button pressed, changing screen to MAIN_MENU");
-                    screenChangeCallback(MAIN_MENU);
-                }
+                Serial.println("Exit button pressed, changing screen to MAIN_MENU");
+                screenChangeCallback(MAIN_MENU);
             }
+        }
 
-            // Handle Start button
-            if (x >= startButton.x && x <= startButton.x + startButton.width &&
-                y >= startButton.y && y <= startButton.y + startButton.height &&
+        // Handle Start button
+        if (x >= startButton.x && x <= startButton.x + startButton.width &&
+            y >= startButton.y && y <= startButton.y + startButton.height &&
                 startButton.state == ENABLE) {
-                    Serial.println("Start button pressed");
-                    onStartPressed();
-                }
+            Serial.println("Start button pressed");
+            onStartPressed();
+        }
 
-            // Handle Stop button
-            if (x >= stopButton.x && x <= stopButton.x + stopButton.width &&
-                y >= stopButton.y && y <= stopButton.y + stopButton.height &&
+        // Handle Stop button
+        if (x >= stopButton.x && x <= stopButton.x + stopButton.width &&
+            y >= stopButton.y && y <= stopButton.y + stopButton.height &&
                 stopButton.state == ENABLE) {
-                    Serial.println("Stop button pressed");
-                    onStopPressed();
-            }
+            Serial.println("Stop button pressed");
+            onStopPressed();
+        }
 
-            // Handle Reset button
-            if (x >= resetButton.x && x <= resetButton.x + resetButton.width &&
-                y >= resetButton.y && y <= resetButton.y + resetButton.height &&
+        // Handle Reset button
+        if (x >= resetButton.x && x <= resetButton.x + resetButton.width &&
+            y >= resetButton.y && y <= resetButton.y + resetButton.height &&
                 resetButton.state == ENABLE) {
-                    Serial.println("Reset button pressed");
-                    onResetPressed();
-            }
+            Serial.println("Reset button pressed");
+            onResetPressed();
         }
         setCS(TOUCH); // Set CS for touch controller
     }
