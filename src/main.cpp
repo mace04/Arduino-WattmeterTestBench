@@ -77,8 +77,7 @@ void core1Task(void *parameter) {
                 tftMainMenu.handleTouch();
             } else if (currentScreen == ABOUT) {
                 tftAbout.handleTouch();
-            }
-            else if (currentScreen == MANUAL_TEST || currentScreen == AUTO_TEST) {
+            } else if (currentScreen == MANUAL_TEST || currentScreen == AUTO_TEST) {
                 tftMotorTest.handleTouch();
             }
         }
