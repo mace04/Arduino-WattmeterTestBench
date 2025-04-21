@@ -223,3 +223,38 @@ Using TftMainMenu as a template create a class TftAbout for a 3.5" TFT LCD Colou
         * the handleTouch method should check both the TOUCH_IRQ interrupt pin and ts.touch() for a touch  
         * TftAbout should be displayed when the About button in TftMainMenu is pressed
         * TftAbout should display TftMainMenu when any touch is detected anywhere inh the screen        
+
+Using TftMainMenu as a template create a class TftMotorTest for a 3.5" TFT LCD Colour Touch Panel with the following requirements 
+    * Use TFT_eSPI and XPT2046_Touchscreen libraries
+    * For UX
+        * Background colour set to NAVY
+        * Create a ribbon on the top in DARKCYAN 40px in height to display the below buttons in green with black text for enabled buttons and grey with white text for diabled buttons and rounded corners
+            * A Start button to be enabled on the left side of the screen
+            * A Stop button to be disabled on the left side of the screen
+            * A Reset button to be enabled on the left side of the screen
+            * An Exit button to be enabled on the right side of the screen
+        * Create a rectangular at the bottom of the screen in black that spans accross the length and is 30px height as a throttle indicator with the following details:
+            * Display the value of throttle as a percent value in White text that is updated everytime the throttle is changed
+            * As the throttle increases the rectangular bos is filled from left to right in green between 0% and 49%, amber between 50% and 84% and red between 85% and 100%
+        * Between the top ribbon and the bottom throttle indicator split the screen into 3 columns and 2 rows to display panels in yellow with rounded conrners for Volts, Current in amps, Thrust in gr, Power in watts, Consumption in mAh and Time in mm:ss. Each pannel will be displayed as:
+            * Recangular with rounded corners 
+            * Background colour of yellow with black text
+            * Top left of the pannel should display the value type
+            * Bottom of pannel should display the value units centered within the boundaries of the pannel
+            * Middle of pannel should display the value read in bigger fonts than the other two and updated every time the value changes.
+    * The class should have the following capabilities
+        * Define enabled and disabled colours for buttons
+        * Define state of buttons
+        * Accept tft panel, touchscreen and MANUAL or AUTO enum as test type as parameters in contructor
+        * An init method to draw the full screen
+        * A method to draw buttons with proper colours depending on their state
+        * A method to change the state of the button and their colours when
+        * A handler to update values on the panels and throttle that is called by the main task in main.cpp every 500ms
+        * A method to handleTouch that will the following:
+            * Call screenChangeCallback only when Exit button is preased to change to the Main Menu
+            * Ignores press of disabled buttons
+            * When Start button is pressed, the button becomes disabled and the Stop button is enabled
+            * When Stop button is pressed, the button is disabled and the Start button is enabled
+            * When Reset button is pressed the Start button is enabled and the Stop button is disabled
+            * The Start, Stop and Rest buttons have a private method each to execute code
+

@@ -7,6 +7,7 @@
 #include "tft_config.h"
 #include "TftMainMenu.h"
 #include "TftAbout.h"
+#include "TftMotorTest.h"
 #include <WiFi.h>
 
 void screenChangeCallback(TftScreenMode screenMode);
@@ -28,6 +29,7 @@ TaskHandle_t core1TaskHandle = NULL;
 
 TftMainMenu tftMainMenu(tft, ts, screenChangeCallback);
 TftAbout tftAbout(tft, ts, screenChangeCallback);
+TftMotorTest tftMotorTest(tft, ts, screenChangeCallback);
 
 // Callback function to handle screen changes
 void screenChangeCallback(TftScreenMode screenMode) {
@@ -36,6 +38,11 @@ void screenChangeCallback(TftScreenMode screenMode) {
         tftMainMenu.init();
     } else if (screenMode == ABOUT) {
         tftAbout.init();
+    } else if (screenMode == MANUAL_TEST){
+        tftMotorTest.init(MANUAL);
+    }
+    else if (screenMode == AUTO_TEST){
+        tftMotorTest.init(AUTO);
     }
 }
 
@@ -70,6 +77,9 @@ void core1Task(void *parameter) {
                 tftMainMenu.handleTouch();
             } else if (currentScreen == ABOUT) {
                 tftAbout.handleTouch();
+            }
+            else if (currentScreen == MANUAL_TEST || currentScreen == AUTO_TEST) {
+                tftMotorTest.handleTouch();
             }
         }
         delay(10); // Delay to prevent task starvation
