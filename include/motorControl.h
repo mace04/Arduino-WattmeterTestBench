@@ -17,6 +17,10 @@ public:
 
     // Functions
     void init(); // Initialize the motor control
+    void reset(); // Method to reset the motor control state
+    bool startManual(String& error); // Method to start the motor in manual mode
+    void stop(); // Method to stop the motor
+    
     void setThrottleCut(bool cut);
     int setThrottle(); // Reads throttle control from pin
     int setThrottle(int percent); // Sets throttle using a parameter
@@ -37,6 +41,8 @@ private:
     bool autoTestEnabled; // Global variable for auto test enabled
     bool running; // Member variable to track running state
     RunningMode runningMode; // Variable to store the current running mode
+
+    bool isThrottle(); // Method to determine if the throttle pin is at 0 or not
 };
 
 #endif // MOTORCONTROL_H

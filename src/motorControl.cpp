@@ -41,6 +41,66 @@ void MotorControl::init(){
     attachInterrupt(THROTTLE_CUT_PIN, throttleCutISR, FALLING); // Trigger on falling edge
 }
 
+void MotorControl::reset() {
+    // Reset throttle cut
+    setThrottleCut(false);
+
+    // Reset throttle to 0
+    setThrottle(0);
+
+    // Reset running state
+    setRunning(false);
+
+    // Reset ESC output
+    ledcWrite(0, 0); // Assuming channel 0 for PWM
+
+    Serial.println("MotorControl has been reset to default state.");
+}
+
+bool MotorControl::startManual(String& error) {
+    if (throttleCut) {
+        error = "Cannot start motor: Throttle cut is enabled.";
+        return false;
+    }
+
+    if (isThrottle()) {
+        error = "Cannot start motor: Throttle is not 0.";
+        return false;
+    }
+
+    // Set running mode to MANUAL
+    setRunningMode(MANUAL);
+
+    // Set running state to true
+    setRunning(true);
+
+    // Initialize throttle to 0
+    setThrottle(0);
+
+    Serial.println("Motor started in MANUAL mode.");
+
+    return true;
+}
+
+void MotorControl::stop() {
+    // Set throttle to 0
+    setThrottle(0);
+
+    // Set running state to false
+    setRunning(false);
+
+    // Reset ESC output
+    ledcWrite(0, 0); // Assuming channel 0 for PWM
+
+    Serial.println("Motor has been stopped.");
+}
+
+bool MotorControl::isThrottle() {
+    int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read the throttle pin value
+    Serial.println("Throttle pin value: " + String(throttleValue)); // Debugging output
+    return throttleValue > 0; // Return true if throttle is not 0, false otherwise
+}
+
 void MotorControl::setThrottleCut(bool cut) {
     throttleCut = cut;
     if (cut) {
