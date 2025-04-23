@@ -1,11 +1,33 @@
 #include "TftMotorTest.h"
 
+// Timer interrupt handler
+void IRAM_ATTR TftMotorTest::onTimer(void* arg) {
+    setCS(PANEL); // Set CS for TFT panel
+    TftMotorTest* instance = static_cast<TftMotorTest*>(arg);
+    instance->updatePanelValues(); // Call the updatePanels method
+    setCS(TOUCH); // Set CS for touch controller
+}
+
 TftMotorTest::TftMotorTest(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode))
     : tft(tft), ts(ts), screenChangeCallback(screenChangeCallback),
-        startButton{"Start", 10, 5, 80, 30, ENABLE},
-        stopButton{"Stop", 100, 5, 80, 30, DISABLE},
-        resetButton{"Reset", 190, 5, 80, 30, ENABLE},
-      exitButton{"Exit", tft.height() - 90, 5, 80, 30, ENABLE} {}
+      startButton{"Start", 10, 5, 80, 30, ENABLE},
+      stopButton{"Stop", 100, 5, 80, 30, DISABLE},
+      resetButton{"Reset", 190, 5, 80, 30, ENABLE},
+      exitButton{"Exit", tft.height() - 90, 5, 80, 30, ENABLE},
+      panels{Panel("", "", 0, 0, 0, 0, ""), Panel("", "", 0, 0, 0, 0, ""), 
+             Panel("", "", 0, 0, 0, 0, ""), Panel("", "", 0, 0, 0, 0, ""), 
+             Panel("", "", 0, 0, 0, 0, ""), Panel("", "", 0, 0, 0, 0, "")} {
+    // Initialize panel details with width and height
+    int panelWidth = tft.height() / 3 - 15;
+    int panelHeight = (tft.width() - 70) / 2 - 15;
+
+    panels[0] = Panel("Volts", "Volts", 10, 50, panelWidth, panelHeight, "0.0");
+    panels[1] = Panel("Current", "Amps", tft.height() / 3 + 10, 50, panelWidth, panelHeight, "0.0");
+    panels[2] = Panel("Thrust", "Grams", 2 * (tft.height() / 3) + 10, 50, panelWidth, panelHeight, "0");
+    panels[3] = Panel("Power", "Watts", 10, 50 + panelHeight + 10, panelWidth, panelHeight, "0");
+    panels[4] = Panel("Consumption", "mAh", tft.height() / 3 + 10, 50 + panelHeight + 10, panelWidth, panelHeight, "0");
+    panels[5] = Panel("Time", "", 2 * (tft.height() / 3) + 10, 50 + panelHeight + 10, panelWidth, panelHeight, "00:00");
+}
 
 void TftMotorTest::init(TestType testType) {
     // Chip select PANEL
@@ -56,7 +78,7 @@ void TftMotorTest::setButtonState(Button& button, ButtonState state) {
 
 void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
     // Draw the throttle background
-    tft.drawRect(0, tft.height() - 30, tft.width(), 30, TFT_WHITE);
+    tft.drawRect(10, tft.height() - 30, tft.width() - 10, 30, TFT_WHITE);
 
     // Determine the throttle bar color
     uint16_t barColor = TFT_GREEN;
@@ -79,48 +101,75 @@ void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
 }
 
 void TftMotorTest::drawPanels() {
-    int panelWidth = tft.width() / 3 - 10; // 3 columns with 10px spacing
-    int panelHeight = (tft.height() - 75) / 2 - 10; // 2 rows with 10px spacing
-    int xOffsets[] = {5, panelWidth + 15, 2 * panelWidth + 25};
-    int yOffsets[] = {50, 50 + panelHeight + 10};
-
-    drawPanel("Volts", "12.5", "Vols", xOffsets[0], yOffsets[0]);
-    drawPanel("Current", "3.2", "Amps", xOffsets[1], yOffsets[0]);
-    drawPanel("Thrust", "500", "Grams", xOffsets[2], yOffsets[0]);
-    drawPanel("Power", "40", "Watts", xOffsets[0], yOffsets[1]);
-    drawPanel("Consumption", "120", "mAh", xOffsets[1], yOffsets[1]);
-    drawPanel("Time", "00:45", "", xOffsets[2], yOffsets[1]);
+    for (int i = 0; i < NUM_PANELS; i++) {
+        drawPanel(panels[i]);
+    }
 }
 
-void TftMotorTest::drawPanel(const char* label, const char* value, const char* unit, int x, int y) {
-    int panelWidth = tft.width() / 3 - 10;
-    int panelHeight = (tft.height() - 70) / 2 - 10;
-
+void TftMotorTest::drawPanel(const Panel& panel) {
     // Draw panel background
-    tft.fillRoundRect(x, y, panelWidth, panelHeight, 5, TFT_YELLOW);
+    tft.fillRoundRect(panel.x, panel.y, panel.width, panel.height, 5, TFT_YELLOW);
 
     // Draw panel border
-    tft.drawRoundRect(x, y, panelWidth, panelHeight, 5, TFT_BLACK);
+    tft.drawRoundRect(panel.x, panel.y, panel.width, panel.height, 5, TFT_BLACK);
 
     // Display label at the top-left
     tft.setTextColor(TFT_BLACK);
     tft.setTextSize(2);
     tft.setTextDatum(TL_DATUM);
-    tft.drawString(label, x + 5, y + 5);
+    tft.drawString(panel.label, panel.x + 5, panel.y + 5);
 
     // Display value in the middle
     tft.setTextSize(3);
     tft.setTextDatum(TC_DATUM);
-    tft.drawString(value, x + panelWidth / 2, y + panelHeight / 2);
+    tft.drawString(panel.value, panel.x + panel.width / 2, panel.y + panel.height / 2 - 10);
 
     // Display unit at the bottom
     tft.setTextSize(2);
     tft.setTextDatum(BC_DATUM);
-    tft.drawString(unit, x + panelWidth / 2, y + panelHeight - 5);
+    tft.drawString(panel.unit, panel.x + panel.width / 2, panel.y + panel.height - 5);
+}
+
+// Method to update only the values within the panels
+void TftMotorTest::updatePanelValues() {
+    // Simulate reading sensor values (replace with actual sensor readings)
+    String volts = String(random(110, 130) / 10.0, 1); // Simulated voltage
+    String current = String(random(10, 50) / 10.0, 1); // Simulated current
+    String thrust = String(random(400, 600));          // Simulated thrust
+    String power = String(volts.toInt() * current.toInt());             // Simulated power
+    String consumption = String(random(100, 200));     // Simulated consumption
+    String time = "00:" + String(random(10, 59));      // Simulated time
+
+    // Update panel values
+    updatePanelValue(0, volts.c_str());
+    updatePanelValue(1, current.c_str());
+    updatePanelValue(2, thrust.c_str());
+    updatePanelValue(3, power.c_str());
+    updatePanelValue(4, consumption.c_str());
+    updatePanelValue(5, time.c_str());
+
+    Serial.println("Panel values updated.");
+}
+
+void TftMotorTest::updatePanelValue(int panelIndex, const char* value) {
+    if (panelIndex < 0 || panelIndex >= NUM_PANELS) return; // Ensure valid index
+
+    Panel& panel = panels[panelIndex];
+    strncpy(panel.value, value, sizeof(panel.value) - 1); // Update the value
+    panel.value[sizeof(panel.value) - 1] = '\0';          // Ensure null termination
+
+    // Clear the previous value
+    tft.fillRect(panel.x + 5, panel.y + panel.height / 2 - 10, panel.width - 10, 20, TFT_YELLOW);
+
+    // Display the new value in the middle of the panel
+    tft.setTextColor(TFT_BLACK, TFT_YELLOW);
+    tft.setTextSize(3);
+    tft.setTextDatum(TC_DATUM);
+    tft.drawString(panel.value, panel.x + panel.width / 2, panel.y + panel.height / 2 - 10);
 }
 
 void TftMotorTest::handleTouch() {
-    if (digitalRead(TOUCH_IRQ) == LOW && ts.touched()) {
+    if (digitalRead(TOUCH_IRQ) == LOW) {
         unsigned long currentTime = millis();
         if (currentTime - lastTouchTime < debounceDelay) {
             setCS(TOUCH); // Set CS for touch controller
@@ -137,8 +186,14 @@ void TftMotorTest::handleTouch() {
         // Check if Exit button is pressed
         if (x >= exitButton.x && x <= exitButton.x + exitButton.width &&
                 y >= exitButton.y && y <= exitButton.y + exitButton.height) {
-                if (screenChangeCallback) {
+            if (screenChangeCallback) {
                 Serial.println("Exit button pressed, changing screen to MAIN_MENU");
+                // Stop and delete the timer
+                if (updateTimer) {
+                    esp_timer_stop(updateTimer);
+                    esp_timer_delete(updateTimer);
+                    updateTimer = nullptr;
+                }
                 screenChangeCallback(MAIN_MENU);
             }
         }
@@ -174,16 +229,43 @@ void TftMotorTest::onStartPressed() {
     setButtonState(startButton, DISABLE);
     setButtonState(stopButton, ENABLE);
     // Add custom logic for Start button
+    // Create and start the timer
+    const esp_timer_create_args_t timerArgs = {
+        .callback = &TftMotorTest::onTimer,
+        .arg = this,
+        .dispatch_method = ESP_TIMER_TASK,
+        .name = "updateTimer"
+    };
+    esp_timer_create(&timerArgs, &updateTimer);
+    esp_timer_start_periodic(updateTimer, 500000); // 1 second (1,000,000 microseconds)
+
+    Serial.println("Start button pressed. Timer started.");
 }
 
 void TftMotorTest::onStopPressed() {
     setButtonState(stopButton, DISABLE);
     setButtonState(startButton, ENABLE);
     // Add custom logic for Stop button
+    // Stop and delete the timer
+    if (updateTimer) {
+        esp_timer_stop(updateTimer);
+        esp_timer_delete(updateTimer);
+        updateTimer = nullptr;
+    }
+
+    Serial.println("Stop button pressed. Timer stopped.");
 }
 
 void TftMotorTest::onResetPressed() {
     setButtonState(startButton, ENABLE);
     setButtonState(stopButton, DISABLE);
     // Add custom logic for Reset button
+    // Stop and delete the timer
+    if (updateTimer) {
+        esp_timer_stop(updateTimer);
+        esp_timer_delete(updateTimer);
+        updateTimer = nullptr;
+    }
+
+    Serial.println("Stop button pressed. Timer stopped.");
 }

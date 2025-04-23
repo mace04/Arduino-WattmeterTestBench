@@ -3,6 +3,7 @@
 
 #include <TFT_eSPI.h>
 #include <XPT2046_Touchscreen.h>
+#include <esp_timer.h> // Include ESP32 timer library
 #include "tft_config.h"
 
 enum TestType { MANUAL, AUTO };
@@ -13,13 +14,14 @@ public:
     void init(TestType testType);
     void handleTouch();
     void updateThrottle(int throttlePercent);
-    void updatePanel(const char* label, const char* value);
+    void updatePanelValues(); // Update only the values within the panels
 
 private:
     TFT_eSPI& tft;
     XPT2046_Touchscreen& ts;
     TestType testType;
     void (*screenChangeCallback)(TftScreenMode);
+
     static const int debounceDelay = 200; // Debounce delay in milliseconds
     unsigned long lastTouchTime = 0; // Timestamp for non-blocking debounce    
 
@@ -30,18 +32,39 @@ private:
         ButtonState state;
     };
 
+    struct Panel {
+        const char* label;  // Panel label (e.g., "Volts")
+        const char* unit;   // Unit of the value (e.g., "Volts")
+        int x, y;           // Top-left corner position of the panel
+        int width, height;  // Dimensions of the panel
+        char value[10];     // Current value displayed in the panel
+    
+        // Constructor for easy initialization
+        Panel(const char* lbl, const char* unt, int posX, int posY, int w, int h, const char* val) 
+        : label(lbl), unit(unt), x(posX), y(posY), width(w), height(h) {
+        strncpy(value, val, sizeof(value) - 1);
+        value[sizeof(value) - 1] = '\0'; // Ensure null termination
+    }
+};
+
     Button startButton;
     Button stopButton;
     Button resetButton;
     Button exitButton;
 
+    esp_timer_handle_t updateTimer; // Timer handle for periodic updates
+
+    static const int NUM_PANELS = 6; // Number of panels
+    Panel panels[NUM_PANELS];       // Array to store panel details
+
+    static void IRAM_ATTR onTimer(void* arg); // Timer interrupt handler
+    void updatePanelValue(int panelIndex, const char* value); // Update a specific panel's value
     void drawRibbon();
     void drawButton(const Button& button);
     void setButtonState(Button& button, ButtonState state);
     void drawThrottleIndicator(int throttlePercent);
     void drawPanels();
-    void drawPanel(const char* label, const char* value, const char* unit, int x, int y);
-
+    void drawPanel(const Panel& panel);
     void onStartPressed();
     void onStopPressed();
     void onResetPressed();
