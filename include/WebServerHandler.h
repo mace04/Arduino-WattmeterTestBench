@@ -9,6 +9,7 @@
 #include "Settings.h"
 #include "sensors.h"
 #include "TftUpdate.h"
+#include "motorControl.h"
 
 // Function declarations
 void initWiFi(const char* ssid, const char* password);

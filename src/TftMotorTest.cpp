@@ -148,7 +148,6 @@ void TftMotorTest::updatePanelValues() {
     updatePanelValue(4, consumption.c_str());
     updatePanelValue(5, time.c_str());
 
-    Serial.println("Panel values updated.");
 }
 
 void TftMotorTest::updatePanelValue(int panelIndex, const char* value) {
@@ -240,6 +239,14 @@ void TftMotorTest::onStartPressed() {
     esp_timer_start_periodic(updateTimer, 500000); // 1 second (1,000,000 microseconds)
 
     Serial.println("Start button pressed. Timer started.");
+
+    String error;
+    if(testType == MANUAL) {
+        // Set the motor to manual mode
+        motorControl.startManual(error); // Set the motor to manual mode (replace with actual motor control logic)
+    } else if(testType == AUTO) {
+        // Set the motor to auto mode
+    }   
 }
 
 void TftMotorTest::onStopPressed() {
@@ -254,6 +261,7 @@ void TftMotorTest::onStopPressed() {
     }
 
     Serial.println("Stop button pressed. Timer stopped.");
+    motorControl.stop(); // Stop the motor (replace with actual motor control logic)
 }
 
 void TftMotorTest::onResetPressed() {
@@ -268,4 +276,5 @@ void TftMotorTest::onResetPressed() {
     }
 
     Serial.println("Stop button pressed. Timer stopped.");
+    motorControl.reset(); // Reset the motor (replace with actual motor control logic)
 }

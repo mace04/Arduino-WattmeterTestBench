@@ -2,6 +2,7 @@
 
 WebServer server(80);
 extern TFT_eSPI tft;
+extern MotorControl motorControl;
 
 
 void initWiFi(const char* ssid, const char* password) {
@@ -76,6 +77,10 @@ void initWebServer(Settings& settings) {
 
     // Serve update.html for GET /update
     server.on("/update", HTTP_GET, []() {
+        if (motorControl.isRunning()) {
+            server.send(500, "text/plain", "Motor is running. Cannot update firmware.");
+            return;
+        }
         File file = SPIFFS.open("/update.html", "r");
         if (!file) {
             server.send(404, "text/plain", "File not found");
@@ -93,6 +98,10 @@ void initWebServer(Settings& settings) {
     }, []() {
         HTTPUpload& upload = server.upload();
         if (upload.status == UPLOAD_FILE_START) {
+            if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { // Start with unknown size
+                Update.printError(Serial);
+                return;
+            }
             Serial.printf("Update: %s\n", upload.filename.c_str());
             TftUpdate tftUpdate(tft);
             tftUpdate.init();

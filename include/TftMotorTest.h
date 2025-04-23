@@ -5,8 +5,10 @@
 #include <XPT2046_Touchscreen.h>
 #include <esp_timer.h> // Include ESP32 timer library
 #include "tft_config.h"
+#include "motorControl.h"
 
 enum TestType { MANUAL, AUTO };
+extern MotorControl motorControl; // Forward declaration of motorControl
 
 class TftMotorTest {
 public:
