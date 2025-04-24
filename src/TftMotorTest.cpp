@@ -41,6 +41,8 @@ void TftMotorTest::init(TestType testType) {
     drawRibbon();
 
     // Draw the throttle indicator
+    // Draw the throttle background
+    tft.drawRect(10, tft.height() - 30, tft.width() - 10, 30, TFT_WHITE);
     drawThrottleIndicator(0); // Start with 0% throttle
 
     // Draw the panels
@@ -77,8 +79,14 @@ void TftMotorTest::setButtonState(Button& button, ButtonState state) {
 }
 
 void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
-    // Draw the throttle background
-    tft.drawRect(10, tft.height() - 30, tft.width() - 10, 30, TFT_WHITE);
+    static int lastThrottlePercent = -1; // Track the last throttle value to avoid redundant updates
+
+    // Only update if the throttle percentage has changed
+    if (throttlePercent == lastThrottlePercent) {
+        return;
+    }
+
+    lastThrottlePercent = throttlePercent; // Update the last throttle value
 
     // Determine the throttle bar color
     uint16_t barColor = TFT_GREEN;
@@ -88,15 +96,20 @@ void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
         barColor = TFT_RED;
     }
 
-    // Draw the throttle bar
+    // Calculate the new bar width
     int barWidth = (tft.width() * throttlePercent) / 100;
-    tft.fillRect(12, tft.height() - 28, barWidth-2, 26, barColor);
-    if (throttlePercent < 100 && throttlePercent > 0) {
-        tft.fillRect(barWidth, tft.height() - 28, tft.width() - barWidth - 10, 26, TFT_NAVY);
+
+    // Clear the previous bar area if needed
+    if (throttlePercent < 100) {
+        int clearWidth = (tft.width() * (100 - throttlePercent)) / 100;
+        tft.fillRect(barWidth + 12, tft.height() - 28, clearWidth - 2, 26, TFT_NAVY);
     }
-    
-    // Display the throttle percentage
-    tft.setTextColor(TFT_WHITE, TFT_NAVY);
+
+    // Draw the updated throttle bar
+    tft.fillRect(12, tft.height() - 28, barWidth - 2, 26, barColor);
+
+    // Update the throttle percentage text
+    tft.setTextColor(TFT_WHITE);
     tft.setTextSize(2);
     tft.setTextDatum(TC_DATUM);
     String throttleValue = String(throttlePercent) + '%';
