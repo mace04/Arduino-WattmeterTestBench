@@ -91,7 +91,7 @@ void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
     // Draw the throttle bar
     int barWidth = (tft.width() * throttlePercent) / 100;
     tft.fillRect(12, tft.height() - 28, barWidth-2, 26, barColor);
-    if (throttlePercent < 100) {
+    if (throttlePercent < 100 && throttlePercent > 0) {
         tft.fillRect(barWidth, tft.height() - 28, tft.width() - barWidth - 10, 26, TFT_NAVY);
     }
     
