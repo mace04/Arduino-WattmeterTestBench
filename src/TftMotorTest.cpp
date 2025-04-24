@@ -90,8 +90,11 @@ void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
 
     // Draw the throttle bar
     int barWidth = (tft.width() * throttlePercent) / 100;
-    tft.fillRect(0, tft.height() - 30, barWidth, 30, barColor);
-
+    tft.fillRect(12, tft.height() - 28, barWidth-2, 26, barColor);
+    if (throttlePercent < 100) {
+        tft.fillRect(barWidth, tft.height() - 28, tft.width() - barWidth - 10, 26, TFT_NAVY);
+    }
+    
     // Display the throttle percentage
     tft.setTextColor(TFT_WHITE, TFT_NAVY);
     tft.setTextSize(2);
@@ -139,6 +142,7 @@ void TftMotorTest::updatePanelValues() {
     String power = String(volts.toInt() * current.toInt());             // Simulated power
     String consumption = String(random(100, 200));     // Simulated consumption
     String time = "00:" + String(random(10, 59));      // Simulated time
+    int throttlePercent = random(45, 55); // Simulated throttle percentage
 
     // Update panel values
     updatePanelValue(0, volts.c_str());
@@ -147,6 +151,8 @@ void TftMotorTest::updatePanelValues() {
     updatePanelValue(3, power.c_str());
     updatePanelValue(4, consumption.c_str());
     updatePanelValue(5, time.c_str());
+
+    drawThrottleIndicator(throttlePercent); // Update throttle indicator
 
 }
 
