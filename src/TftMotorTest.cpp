@@ -21,12 +21,12 @@ TftMotorTest::TftMotorTest(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screen
     int panelWidth = tft.height() / 3 - 15;
     int panelHeight = (tft.width() - 70) / 2 - 15;
 
-    panels[0] = Panel("Volts", "Volts", 10, 50, panelWidth, panelHeight, "0.0");
-    panels[1] = Panel("Current", "Amps", tft.height() / 3 + 10, 50, panelWidth, panelHeight, "0.0");
-    panels[2] = Panel("Thrust", "Grams", 2 * (tft.height() / 3) + 10, 50, panelWidth, panelHeight, "0");
-    panels[3] = Panel("Power", "Watts", 10, 50 + panelHeight + 10, panelWidth, panelHeight, "0");
-    panels[4] = Panel("Consumption", "mAh", tft.height() / 3 + 10, 50 + panelHeight + 10, panelWidth, panelHeight, "0");
-    panels[5] = Panel("Time", "", 2 * (tft.height() / 3) + 10, 50 + panelHeight + 10, panelWidth, panelHeight, "00:00");
+    panels[PANEL_VOLTAGE] = Panel("Volts", "Volts", 10, 50, panelWidth, panelHeight, "0.0");
+    panels[PANEL_CURRENT] = Panel("Current", "Amps", tft.height() / 3 + 10, 50, panelWidth, panelHeight, "0.0");
+    panels[PANEL_THRUST] = Panel("Thrust", "Grams", 2 * (tft.height() / 3) + 10, 50, panelWidth, panelHeight, "0");
+    panels[PANEL_POWER] = Panel("Power", "Watts", 10, 50 + panelHeight + 10, panelWidth, panelHeight, "0");
+    panels[PANEL_CONSUMPTION] = Panel("Consumption", "mAh", tft.height() / 3 + 10, 50 + panelHeight + 10, panelWidth, panelHeight, "0");
+    panels[PANEL_TIME] = Panel("Time", "", 2 * (tft.height() / 3) + 10, 50 + panelHeight + 10, panelWidth, panelHeight, "00:00");
 }
 
 void TftMotorTest::init(TestType testType) {
@@ -148,24 +148,14 @@ void TftMotorTest::drawPanel(const Panel& panel) {
 
 // Method to update only the values within the panels
 void TftMotorTest::updatePanelValues() {
-    // Simulate reading sensor values (replace with actual sensor readings)
-    String volts = String(random(110, 130) / 10.0, 1); // Simulated voltage
-    String current = String(random(10, 50) / 10.0, 1); // Simulated current
-    String thrust = String(random(400, 600));          // Simulated thrust
-    String power = String(volts.toInt() * current.toInt());             // Simulated power
-    String consumption = String(random(100, 200));     // Simulated consumption
-    String time = "00:" + String(random(10, 59));      // Simulated time
-    int throttlePercent = random(45, 55); // Simulated throttle percentage
-
     // Update panel values
-    updatePanelValue(0, volts.c_str());
-    updatePanelValue(1, current.c_str());
-    updatePanelValue(2, thrust.c_str());
-    updatePanelValue(3, power.c_str());
-    updatePanelValue(4, consumption.c_str());
-    updatePanelValue(5, time.c_str());
-
-    drawThrottleIndicator(throttlePercent); // Update throttle indicator
+    updatePanelValue(PANEL_VOLTAGE, String(Voltage,2).c_str());
+    updatePanelValue(PANEL_CURRENT, String(Current,1).c_str());   
+    updatePanelValue(PANEL_THRUST, String(Thrust).c_str());
+    updatePanelValue(PANEL_POWER, String(Power).c_str());
+    updatePanelValue(PANEL_CONSUMPTION, String(Consumption).c_str());
+    updatePanelValue(PANEL_TIME, Time.c_str());
+    drawThrottleIndicator(ThrottlePercent); // Update throttle indicator
 
 }
 
@@ -296,4 +286,8 @@ void TftMotorTest::onResetPressed() {
 
     Serial.println("Stop button pressed. Timer stopped.");
     motorControl.reset(); // Reset the motor (replace with actual motor control logic)
+    // Update panel values
+
+    updatePanelValue(PANEL_CONSUMPTION, "0"); // Reset consumption
+    updatePanelValue(PANEL_TIME, "00:00");  // Reset time  
 }

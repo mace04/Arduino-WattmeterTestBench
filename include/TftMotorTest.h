@@ -12,6 +12,14 @@ extern MotorControl motorControl; // Forward declaration of motorControl
 
 class TftMotorTest {
 public:
+    float Voltage = 0.0; // Variable to store voltage reading
+    float Current = 0.0; // Variable to store current reading
+    int Thrust = 0; // Variable to store thrust reading
+    int Power = 0; // Variable to store power reading
+    int Consumption = 0; // Variable to store accumulated mAh
+    String Time = "00:00"; // Variable to store elapsed time
+    int ThrottlePercent = 0; // Variable to store throttle percentage
+    
     TftMotorTest(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode));
     void init(TestType testType);
     void handleTouch();
@@ -19,6 +27,7 @@ public:
     void updatePanelValues(); // Update only the values within the panels
 
 private:
+    enum PanelIndex { PANEL_VOLTAGE = 0, PANEL_CURRENT, PANEL_THRUST, PANEL_POWER, PANEL_CONSUMPTION, PANEL_TIME }; // Define panel modes
     TFT_eSPI& tft;
     XPT2046_Touchscreen& ts;
     TestType testType;
