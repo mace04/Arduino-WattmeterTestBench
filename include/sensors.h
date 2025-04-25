@@ -20,10 +20,20 @@ void resetWeightSensor();
 float readWeightSensor();
 
 // Inline function to calculate power in watts
-inline float calculatePower(float voltage, float current);
-// Inline function to calculate and update running consumption in mAh
-inline float calculateConsumption(float current);
 
+// Inline function to calculate power in watts
+inline float calculatePower(float voltage, float current) {
+    return voltage * current; // Power (P) = Voltage (V) * Current (I)
+}
+
+// Inline function to calculate and update running consumption in mAh
+float calculateConsumption(float current);
 void resetConsumption();
+
+void startTimer();
+void pauseTimer();
+void resetTimer();
+String getElapsedTime();
+
 
 #endif // SENSORS_H

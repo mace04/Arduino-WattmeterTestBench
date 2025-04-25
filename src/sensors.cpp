@@ -20,6 +20,11 @@ int currentIndex = 0;
 float totalConsumption; // Total consumption in mAh
 unsigned long lastConsumptionUpdateTime; // Last time consumption was updated
 
+// Global variables for the timer
+bool timerRunning = false;               // Tracks whether the timer is running
+unsigned long timerStartTime = 0;        // Stores the start time of the timer
+unsigned long timerElapsedTime = 0;      // Stores the elapsed time when paused
+
 void initSensors() {
     // Initialize pins
     pinMode(VOLTAGE_SENSOR_PIN, INPUT); // Set voltage sensor pin as input  
@@ -100,16 +105,54 @@ void resetConsumption() {
     lastConsumptionUpdateTime = millis(); // Update the last update time
 }
 
-// Inline function to calculate power in watts
-inline float calculatePower(float voltage, float current) {
-    return voltage * current; // Power (P) = Voltage (V) * Current (I)
-}
-
 // Inline function to calculate and update running consumption in mAh
-inline float calculateConsumption(float current) {
+float calculateConsumption(float current) {
     unsigned long currentTime = millis();
     float elapsedTimeInSeconds = (currentTime - lastConsumptionUpdateTime) / 1000.0; // Convert milliseconds to seconds
     totalConsumption += (current * elapsedTimeInSeconds) / 3600.0; // Update running consumption
     lastConsumptionUpdateTime = currentTime; // Update the last update time
     return totalConsumption; // Return the updated total consumption
+}
+
+void startTimer() {
+    if (!timerRunning) {
+        timerStartTime = millis() - timerElapsedTime; // Resume from the paused time
+        timerRunning = true; // Set the timer to running
+        Serial.println("Timer started.");
+    }
+}
+
+void pauseTimer() {
+    if (timerRunning) {
+        timerElapsedTime = millis() - timerStartTime; // Calculate elapsed time
+        timerRunning = false; // Pause the timer
+        Serial.println("Timer paused.");
+    }
+}
+
+void resetTimer() {
+    timerRunning = false; // Stop the timer
+    timerStartTime = 0;   // Reset the start time
+    timerElapsedTime = 0; // Reset the elapsed time
+    Serial.println("Timer reset.");
+}
+
+String getElapsedTime() {
+    unsigned long elapsedTime;
+    if (timerRunning) {
+        elapsedTime = millis() - timerStartTime; // Calculate elapsed time while running
+    } else {
+        elapsedTime = timerElapsedTime; // Return the paused elapsed time
+    }
+
+    // Convert elapsed time to minutes and seconds
+    unsigned long totalSeconds = elapsedTime / 1000; // Convert milliseconds to seconds
+    unsigned int minutes = totalSeconds / 60;       // Calculate minutes
+    unsigned int seconds = totalSeconds % 60;       // Calculate remaining seconds
+
+    // Format the result as mm:ss
+    char buffer[6]; // Buffer to hold the formatted string
+    snprintf(buffer, sizeof(buffer), "%02u:%02u", minutes, seconds);
+
+    return String(buffer); // Return the formatted string
 }
