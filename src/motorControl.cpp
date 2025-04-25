@@ -77,6 +77,9 @@ bool MotorControl::startManual(String& error) {
     // Initialize throttle to 0
     setThrottle(0);
 
+    // Start Timer
+    startTimer(); // Assuming startTimer() is defined elsewhere
+
     Serial.println("Motor started in MANUAL mode.");
 
     return true;
@@ -123,6 +126,12 @@ int MotorControl::setThrottle() {
         return throttlePercent;
     }
     return 0; // Return 0 if not running or throttle cut is enabled
+}
+
+int MotorControl::getThrottlePercent() {
+    int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read throttle control value
+    int throttlePercent = map(throttleValue, 0, 4095, 0, 100); // Convert to percentage
+    return throttlePercent; // Return the throttle percentage
 }
 
 int MotorControl::setThrottle(int percent) {

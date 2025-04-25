@@ -2,6 +2,7 @@
 #define MOTORCONTROL_H
 
 #include <Arduino.h>
+#include "sensors.h"
 
 // Pin definitions
 #define THROTTLE_CONTROL_PIN 36 // Pin for throttle control input
@@ -24,6 +25,7 @@ public:
     void setThrottleCut(bool cut);
     int setThrottle(); // Reads throttle control from pin
     int setThrottle(int percent); // Sets throttle using a parameter
+    int getThrottlePercent(); // Get the throttle percentage
     bool getThrottleCut();
     bool isAutoTestEnabled(); // Check if auto test is enabled
     void setAutoTestEnabled(bool enabled); // Set auto test enabled or disabled
