@@ -54,6 +54,8 @@ void MotorControl::reset() {
     // Reset ESC output
     ledcWrite(0, 0); // Assuming channel 0 for PWM
 
+    resetTimer(); // Assuming resetTimer() is defined elsewhere
+
     Serial.println("MotorControl has been reset to default state.");
 }
 
@@ -91,6 +93,7 @@ void MotorControl::stop() {
 
     // Set running state to false
     setRunning(false);
+    pauseTimer(); // Assuming pauseTimer() is defined elsewhere
 
     // Reset ESC output
     ledcWrite(0, 0); // Assuming channel 0 for PWM
