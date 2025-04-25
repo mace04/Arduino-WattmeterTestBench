@@ -9,7 +9,6 @@
 #define HX711_DT_PIN 32
 #define HX711_SCK_PIN 33
 
-
 // Running average parameters
 const int AVERAGE_WINDOW_SIZE = 10;
 
@@ -19,5 +18,12 @@ float readVoltageSensor();
 float readCurrentSensor();
 void resetWeightSensor();
 float readWeightSensor();
+
+// Inline function to calculate power in watts
+inline float calculatePower(float voltage, float current);
+// Inline function to calculate and update running consumption in mAh
+inline float calculateConsumption(float current);
+
+void resetConsumption();
 
 #endif // SENSORS_H

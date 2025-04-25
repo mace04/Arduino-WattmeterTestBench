@@ -16,6 +16,10 @@ float currentReadings[AVERAGE_WINDOW_SIZE] = {0};
 int voltageIndex = 0;
 int currentIndex = 0;
 
+// Global variables to track running consumption and elapsed time
+float totalConsumption; // Total consumption in mAh
+unsigned long lastConsumptionUpdateTime; // Last time consumption was updated
+
 void initSensors() {
     // Initialize pins
     pinMode(VOLTAGE_SENSOR_PIN, INPUT); // Set voltage sensor pin as input  
@@ -89,4 +93,23 @@ float readWeightSensor() {
     adjustedWeight = rawWeight + settings.getThrustOffset();
     #endif
     return adjustedWeight;
+}
+
+void resetConsumption() {
+    totalConsumption = 0.0; // Reset total consumption to zero
+    lastConsumptionUpdateTime = millis(); // Update the last update time
+}
+
+// Inline function to calculate power in watts
+inline float calculatePower(float voltage, float current) {
+    return voltage * current; // Power (P) = Voltage (V) * Current (I)
+}
+
+// Inline function to calculate and update running consumption in mAh
+inline float calculateConsumption(float current) {
+    unsigned long currentTime = millis();
+    float elapsedTimeInSeconds = (currentTime - lastConsumptionUpdateTime) / 1000.0; // Convert milliseconds to seconds
+    totalConsumption += (current * elapsedTimeInSeconds) / 3600.0; // Update running consumption
+    lastConsumptionUpdateTime = currentTime; // Update the last update time
+    return totalConsumption; // Return the updated total consumption
 }
