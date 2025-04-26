@@ -7,13 +7,26 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Update Firmware</h1>
+    <h1>Upload Update</h1>
     <form method="POST" action="/update" enctype="multipart/form-data">
-        <div class="form-group">
-            <label for="firmware">Select Firmware BIN File:</label>
-            <input type="file" id="firmware" name="firmware" accept=".bin" required>
+        <div>
+            <label for="uploadType">Select Upload Type:</label>
+            <div class="radio-group">
+                <div>
+                    <input type="radio" id="firmware" name="uploadType" value="firmware" checked>
+                    <label for="firmware">Firmware</label>
+                </div>
+                <div>
+                    <input type="radio" id="filesystem" name="uploadType" value="filesystem">
+                    <label for="filesystem">Filesystem</label>
+                </div>
+            </div>
         </div>
-        <button type="submit">Update</button>
+        <div>
+            <label for="file">Select File:</label>
+            <input type="file" id="file" name="file" accept=".bin" required>
+        </div>
+        <button type="submit">Upload</button>
     </form>
 </body>
 </html>

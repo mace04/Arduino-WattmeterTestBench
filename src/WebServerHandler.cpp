@@ -95,19 +95,47 @@ void initWebServer(Settings& settings) {
         server.send(200, "text/plain", (Update.hasError()) ? "Update Failed" : "Update Successful. Rebooting...");
         delay(1000);
         ESP.restart();
-    }, []() {
+    }, [&settings]() {
         HTTPUpload& upload = server.upload();
+        static String uploadType; // Store the upload type (firmware or filesystem)
         if (upload.status == UPLOAD_FILE_START) {
-            if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { // Start with unknown size
-                Update.printError(Serial);
+            // Get the upload type from the request
+            if (server.hasArg("uploadType")) {
+                uploadType = server.arg("uploadType");
+                Serial.printf("Upload Type: %s\n", uploadType.c_str());
+            } else {
+                Serial.println("Upload Type not specified. Defaulting to firmware.");
+                uploadType = "firmware"; // Default to firmware if not specified
+            }
+
+            // Backup settings.json if the upload type is filesystem
+            if (uploadType == "filesystem") {
+                if (SPIFFS.exists("/settings.json")) {
+                    settings.loadSettings();
+                    Serial.println("settings.json backed up successfully.");
+                }
+            }
+    
+            // Start the update process based on the upload type
+            if (uploadType == "firmware") {
+                if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) { // Start firmware update
+                    Update.printError(Serial);
+                    return;
+                }
+            } else if (uploadType == "filesystem") {
+                if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_SPIFFS)) { // Start filesystem update
+                    Update.printError(Serial);
+                    return;
+                }
+            } else {
+                Serial.println("Invalid upload type.");
                 return;
             }
+    
             Serial.printf("Update: %s\n", upload.filename.c_str());
+    
             TftUpdate tftUpdate(tft);
             tftUpdate.init();
-            if (!Update.begin(UPDATE_SIZE_UNKNOWN)) { // Start with unknown size
-                Update.printError(Serial);
-            }
         } else if (upload.status == UPLOAD_FILE_WRITE) {
             // Write the received data to the flash
             if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
@@ -115,6 +143,11 @@ void initWebServer(Settings& settings) {
             }
         } else if (upload.status == UPLOAD_FILE_END) {
             if (Update.end(true)) { // End and validate the update
+                // Restore settings.json if the upload type is filesystem
+                if (uploadType == "filesystem") {
+                    settings.saveSettings();
+                    Serial.println("settings.json restored successfully.");
+                }
                 Serial.printf("Update Success: %u bytes\n", upload.totalSize);
             } else {
                 Update.printError(Serial);
@@ -156,7 +189,7 @@ void handleGetSettings(WebServer& server, Settings& settings) {
     html.replace("{{MAX_CURRENT}}", String(settings.getMaxCurrent()));
     html.replace("{{MAX_THRUST}}", String(settings.getMaxThrust()));
     html.replace("{{TEST_PHASE_DURATION}}", String(settings.getTestPhaseDuration()));
-
+    html.replace("{{TEST_WARM_DURATION}}", String(settings.getTestWarmDuration())); // Assuming testWarmDuration is defined
     // Send the modified HTML to the client
     server.send(200, "text/html", html);
 }
@@ -175,6 +208,7 @@ void handlePostSettings(WebServer& server, Settings& settings) {
         settings.setMaxCurrent(server.arg("maxCurrent").toInt());
         settings.setMaxThrust(server.arg("maxThrust").toInt());
         settings.setTestPhaseDuration(server.arg("testPhaseDuration").toInt());
+        settings.setTestWarmDuration(server.arg("testWarmDuration").toInt()); // Assuming testWarmDuration is defined
 
         settings.saveSettings();
         server.send(200, "application/json", "{\"status\":\"success\"}");
