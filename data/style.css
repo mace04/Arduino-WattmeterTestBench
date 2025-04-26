@@ -133,3 +133,12 @@ p {
     height: 100%; /* Adjust as needed */
     width: 100%; /* Adjust as needed */
 }
+
+.radio-group {
+    display: flex;
+    gap: 20px; /* Add spacing between radio buttons */
+    align-items: center;
+}
+.radio-group label {
+    margin-left: 5px; /* Add spacing between radio button and label */
+}

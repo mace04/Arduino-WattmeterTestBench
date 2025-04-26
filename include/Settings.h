@@ -22,6 +22,7 @@ public:
     int getMaxCurrent();
     int getMaxThrust();
     int getTestPhaseDuration();
+    int getTestWarmDuration(); // Assuming testWarmDuration is defined
 
     // Setter methods
     void setSSID(const String& ssid);
@@ -34,6 +35,7 @@ public:
     void setMaxCurrent(int value);
     void setMaxThrust(int value);
     void setTestPhaseDuration(int value);
+    void setTestWarmDuration(int value); // Assuming testWarmDuration is defined
 
     // Load and save settings
     void loadSettings();
@@ -51,6 +53,7 @@ private:
     int maxCurrent;
     int maxThrust;
     int testPhaseDuration;
+    int testWarmDuration; // Assuming testWarmDuration is defined
 
     // Helper methods
     void readFromSPIFFS();

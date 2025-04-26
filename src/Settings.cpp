@@ -12,6 +12,7 @@ Settings::Settings() {
     maxCurrent = 100;
     maxThrust = 4900;
     testPhaseDuration = 45;
+    testWarmDuration = 15; // Assuming testWarmDuration is defined
 }
 
 void Settings::loadSettings() {
@@ -58,7 +59,8 @@ void Settings::readFromSPIFFS() {
     thrustOffset = doc["thrustOffset"] | 0.00;
     maxCurrent = doc["maxCurrent"] | 100;
     maxThrust = doc["maxThrust"] | 4900;
-    testPhaseDuration = doc["testPhaseDuration"] | 45;
+    testPhaseDuration = doc["testPhaseDuration"] | 45; 
+    testWarmDuration = doc["testWarmDuration"] | 15; // Assuming testWarmDuration is defined
 
     file.close();
 }
@@ -75,7 +77,7 @@ void Settings::writeToSPIFFS() {
     doc["maxCurrent"] = maxCurrent;
     doc["maxThrust"] = maxThrust;
     doc["testPhaseDuration"] = testPhaseDuration;
-
+    doc["testWarmDuration"] = testWarmDuration; // Assuming testWarmDuration is defined
     File file = SPIFFS.open("/settings.json", "w");
     if (!file) {
         Serial.println("Failed to open settings file for writing");
@@ -97,6 +99,7 @@ double Settings::getThrustOffset() { return thrustOffset; }
 int Settings::getMaxCurrent() { return maxCurrent; }
 int Settings::getMaxThrust() { return maxThrust; }
 int Settings::getTestPhaseDuration() { return testPhaseDuration; }
+int Settings::getTestWarmDuration() { return testWarmDuration; } // Assuming testWarmDuration is defined
 
 // Setter methods
 void Settings::setSSID(const String& newSSID) { ssid = newSSID; }
@@ -109,3 +112,4 @@ void Settings::setThrustOffset(double value) { thrustOffset = value; }
 void Settings::setMaxCurrent(int value) { maxCurrent = value; }
 void Settings::setMaxThrust(int value) { maxThrust = value; }
 void Settings::setTestPhaseDuration(int value) { testPhaseDuration = value; }
+void Settings::setTestWarmDuration(int value) { testWarmDuration = value; }
