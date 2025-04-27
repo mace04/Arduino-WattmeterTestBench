@@ -17,7 +17,7 @@ void initWebServer(Settings& settings);
 void handleWebServer();
 void handleGetUpdate(WebServer& server);
 void handlePostUpdate(WebServer& server);
-void handleGetSettings(WebServer& server, Settings& settings);
+void handleGetSettings(WebServer& server, Settings& settings, bool isSaved = false);
 void handlePostSettings(WebServer& server, Settings& settings);
 void handleOTAUpdate();
 void handleFileAccess(WebServer& server);

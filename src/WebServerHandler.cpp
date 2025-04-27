@@ -166,7 +166,7 @@ void handleWebServer(){
     server.handleClient(); // service any web requests
 }
 
-void handleGetSettings(WebServer& server, Settings& settings) {
+void handleGetSettings(WebServer& server, Settings& settings, bool isSaved) {
     Serial.println("Handling GET /settings request");
     File file = SPIFFS.open("/settings.html", "r");
     if (!file) {
@@ -190,6 +190,14 @@ void handleGetSettings(WebServer& server, Settings& settings) {
     html.replace("{{MAX_THRUST}}", String(settings.getMaxThrust()));
     html.replace("{{TEST_PHASE_DURATION}}", String(settings.getTestPhaseDuration()));
     html.replace("{{TEST_WARM_DURATION}}", String(settings.getTestWarmDuration())); // Assuming testWarmDuration is defined
+    // Check if settings were saved successfully
+    if (isSaved) {
+        html.replace("{{#DISPLAY_BANNER}}", ""); // Enable the banner
+        html.replace("{{/DISPLAY_BANNER}}", "");
+    } else {
+        html.replace("{{#DISPLAY_BANNER}}", "<!--");
+        html.replace("{{/DISPLAY_BANNER}}", "-->");
+    }    
     // Send the modified HTML to the client
     server.send(200, "text/html", html);
 }
@@ -211,7 +219,8 @@ void handlePostSettings(WebServer& server, Settings& settings) {
         settings.setTestWarmDuration(server.arg("testWarmDuration").toInt()); // Assuming testWarmDuration is defined
 
         settings.saveSettings();
-        server.send(200, "application/json", "{\"status\":\"success\"}");
+        // server.send(200, "application/json", "{\"status\":\"success\"}");
+        handleGetSettings(server, settings, true); // Redirect to GET /settings with success message
     } else {
         server.send(400, "application/json", "{\"status\":\"error\",\"message\":\"Invalid request\"}");
     }
