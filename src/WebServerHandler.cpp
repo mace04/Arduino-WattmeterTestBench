@@ -77,85 +77,14 @@ void initWebServer(Settings& settings) {
 
     // Serve update.html for GET /update
     server.on("/update", HTTP_GET, []() {
-        if (motorControl.isRunning()) {
-            server.send(500, "text/plain", "Motor is running. Cannot update firmware.");
-            return;
-        }
-        File file = SPIFFS.open("/update.html", "r");
-        if (!file) {
-            server.send(404, "text/plain", "File not found");
-            return;
-        }
-        server.streamFile(file, "text/html");
-        file.close();
+        handleGetUpdate(server, String(""));
     });
 
     // Handle POST /update for OTA firmware update
     server.on("/update", HTTP_POST, []() {
-        server.send(200, "text/plain", (Update.hasError()) ? "Update Failed" : "Update Successful. Rebooting...");
-        delay(1000);
-        ESP.restart();
+        handlePostUpdate(server);
     }, [&settings]() {
-        HTTPUpload& upload = server.upload();
-        static String uploadType; // Store the upload type (firmware or filesystem)
-        if (upload.status == UPLOAD_FILE_START) {
-            // Get the upload type from the request
-            if (server.hasArg("uploadType")) {
-                uploadType = server.arg("uploadType");
-                Serial.printf("Upload Type: %s\n", uploadType.c_str());
-            } else {
-                Serial.println("Upload Type not specified. Defaulting to firmware.");
-                uploadType = "firmware"; // Default to firmware if not specified
-            }
-
-            // Backup settings.json if the upload type is filesystem
-            if (uploadType == "filesystem") {
-                if (SPIFFS.exists("/settings.json")) {
-                    settings.loadSettings();
-                    Serial.println("settings.json backed up successfully.");
-                }
-            }
-    
-            // Start the update process based on the upload type
-            if (uploadType == "firmware") {
-                if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) { // Start firmware update
-                    Update.printError(Serial);
-                    return;
-                }
-            } else if (uploadType == "filesystem") {
-                if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_SPIFFS)) { // Start filesystem update
-                    Update.printError(Serial);
-                    return;
-                }
-            } else {
-                Serial.println("Invalid upload type.");
-                return;
-            }
-    
-            Serial.printf("Update: %s\n", upload.filename.c_str());
-    
-            TftUpdate tftUpdate(tft);
-            tftUpdate.init();
-        } else if (upload.status == UPLOAD_FILE_WRITE) {
-            // Write the received data to the flash
-            if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
-                Update.printError(Serial);
-            }
-        } else if (upload.status == UPLOAD_FILE_END) {
-            if (Update.end(true)) { // End and validate the update
-                // Restore settings.json if the upload type is filesystem
-                if (uploadType == "filesystem") {
-                    settings.saveSettings();
-                    Serial.println("settings.json restored successfully.");
-                }
-                Serial.printf("Update Success: %u bytes\n", upload.totalSize);
-            } else {
-                Update.printError(Serial);
-            }
-        } else if (upload.status == UPLOAD_FILE_ABORTED) {
-            Update.abort();
-            Serial.println("Update Aborted");
-        }
+        handlePostUpload(server, settings);
     });
 
     server.begin();
@@ -258,4 +187,101 @@ void handleRealtimeStreaming(WebServer& server) {
     csvData += String(readVoltageSensor() * readCurrentSensor()) + "\n"; // Example calculation for watts
     server.send(200, "text/csv", csvData);
     Serial.println("Realtime streaming triggered.");
+}
+
+void handleGetUpdate(WebServer& server, const String& message){
+    if (motorControl.isRunning()) {
+        server.send(500, "text/plain", "Motor is running. Cannot update firmware.");
+        return;
+    }
+    File file = SPIFFS.open("/update.html", "r");
+    if (!file) {
+        server.send(404, "text/plain", "File not found");
+        return;
+    }
+    // Read the file content into a String
+    String html = file.readString();
+    file.close();
+
+    // Check if settings were saved successfully
+    if (!message.isEmpty()) {
+        html.replace("{{#DISPLAY_BANNER}}", ""); // Enable the banner
+        html.replace("{{/DISPLAY_BANNER}}", "");
+        html.replace("{{BANNER_MESSAGE}}", message); // Replace with the message
+    } else {
+        html.replace("{{#DISPLAY_BANNER}}", "<!--");
+        html.replace("{{/DISPLAY_BANNER}}", "-->");
+    }    
+    // Send the modified HTML to the client
+    server.send(200, "text/html", html); 
+}
+
+void handlePostUpdate(WebServer& server){
+    // handleGetUpdate(server, (Update.hasError()) ? String("Update Failed") : String("Update Successful. Rebooting..."));
+    server.send(200, "text/plain", (Update.hasError()) ? "Update Failed" : "Update Successful. Rebooting...");
+    delay(3000);
+    ESP.restart();
+}
+
+void handlePostUpload(WebServer& server, Settings& settings) {
+    HTTPUpload& upload = server.upload();
+    static String uploadType; // Store the upload type (firmware or filesystem)
+    if (upload.status == UPLOAD_FILE_START) {
+        // Get the upload type from the request
+        if (server.hasArg("uploadType")) {
+            uploadType = server.arg("uploadType");
+            Serial.printf("Upload Type: %s\n", uploadType.c_str());
+        } else {
+            Serial.println("Upload Type not specified. Defaulting to firmware.");
+            uploadType = "firmware"; // Default to firmware if not specified
+        }
+
+        // Backup settings.json if the upload type is filesystem
+        if (uploadType == "filesystem") {
+            if (SPIFFS.exists("/settings.json")) {
+                settings.loadSettings();
+                Serial.println("settings.json backed up successfully.");
+            }
+        }
+
+        // Start the update process based on the upload type
+        if (uploadType == "firmware") {
+            if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_FLASH)) { // Start firmware update
+                Update.printError(Serial);
+                return;
+            }
+        } else if (uploadType == "filesystem") {
+            if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_SPIFFS)) { // Start filesystem update
+                Update.printError(Serial);
+                return;
+            }
+        } else {
+            Serial.println("Invalid upload type.");
+            return;
+        }
+
+        Serial.printf("Update: %s\n", upload.filename.c_str());
+
+        TftUpdate tftUpdate(tft);
+        tftUpdate.init();
+    } else if (upload.status == UPLOAD_FILE_WRITE) {
+        // Write the received data to the flash
+        if (Update.write(upload.buf, upload.currentSize) != upload.currentSize) {
+            Update.printError(Serial);
+        }
+    } else if (upload.status == UPLOAD_FILE_END) {
+        if (Update.end(true)) { // End and validate the update
+            // Restore settings.json if the upload type is filesystem
+            if (uploadType == "filesystem") {
+                settings.saveSettings();
+                Serial.println("settings.json restored successfully.");
+            }
+            Serial.printf("Update Success: %u bytes\n", upload.totalSize);
+        } else {
+            Update.printError(Serial);
+        }
+    } else if (upload.status == UPLOAD_FILE_ABORTED) {
+        Update.abort();
+        Serial.println("Update Aborted");
+    }
 }

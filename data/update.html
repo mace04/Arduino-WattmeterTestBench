@@ -5,8 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Update Firmware</title>
     <link rel="stylesheet" href="style.css">
+    <script>
+        // JavaScript to hide the banner after 15 seconds
+        document.addEventListener("DOMContentLoaded", () => {
+            const banner = document.getElementById("message-banner");
+            if (banner) {
+                setTimeout(() => {
+                    banner.style.display = "none";
+                }, 15000); // Hide after 15 seconds
+            }
+        });
+    </script>
 </head>
 <body>
+    {{#DISPLAY_BANNER}}
+    <div id="message-banner">
+        {{BANNER_MESSAGE}}
+    </div>
+    {{/DISPLAY_BANNER}}
     <h1>Upload Update</h1>
     <form method="POST" action="/update" enctype="multipart/form-data">
         <div>

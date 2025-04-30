@@ -15,8 +15,9 @@
 void initWiFi(const char* ssid, const char* password);
 void initWebServer(Settings& settings);
 void handleWebServer();
-void handleGetUpdate(WebServer& server);
+void handleGetUpdate(WebServer& server, const String& message);
 void handlePostUpdate(WebServer& server);
+void handlePostUpload(WebServer& server, Settings& settings);
 void handleGetSettings(WebServer& server, Settings& settings, bool isSaved = false);
 void handlePostSettings(WebServer& server, Settings& settings);
 void handleOTAUpdate();
