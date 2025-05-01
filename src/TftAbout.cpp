@@ -20,7 +20,7 @@ void TftAbout::init() {
 
     // Display details in two columns
     tft.setTextSize(2);
-    drawText("Firmware:", "v1.0.0", 80);
+    drawText("Firmware:", FIRMWARE_VERSION, 80);
     drawText("WiFi Name:", WiFi.SSID().c_str(), 120);
     drawText("IP Address:", WiFi.localIP().toString().c_str(), 160);
 
