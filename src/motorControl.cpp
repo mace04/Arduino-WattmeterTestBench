@@ -251,8 +251,14 @@ int MotorControl::setThrottle() {
 }
 
 int MotorControl::getThrottlePercent() {
-    int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read throttle control value
-    int throttlePercent = map(throttleValue, 0, 4095, 0, 100); // Convert to percentage
+    int throttlePercent;
+    if (getRunningMode() == AUTO){
+        throttlePercent = map(ledcRead(0), 0, 255, 0, 100);
+    }
+    else{
+        int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read throttle control value
+        throttlePercent = map(throttleValue, 0, 4095, 0, 100); // Convert to percentage
+    }
     return throttlePercent; // Return the throttle percentage
 }
 
