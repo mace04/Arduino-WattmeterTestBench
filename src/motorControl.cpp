@@ -25,10 +25,14 @@ MotorControl::MotorControl() {
     runningMode = MANUAL; // Default running mode is MANUAL
 }
 
-void MotorControl::init(){
+void MotorControl::init(Settings& settings){
     pinMode(THROTTLE_CONTROL_PIN, INPUT);
     pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
     pinMode(ESC_OUTPUT_PIN, OUTPUT);
+
+    warmDuration = settings.getTestWarmDuration(); // Duration for throttle ramp-up/down (in seconds)
+    phaseDuration = settings.getTestPhaseDuration(); // Duration for holding throttle levels (in seconds)
+
 
     // Configure PWM for ESC output
     ledcSetup(0, 50, 8); // Channel 0, 50 Hz frequency, 8-bit resolution
@@ -53,6 +57,12 @@ void MotorControl::reset() {
 
     // Reset ESC output
     ledcWrite(0, 0); // Assuming channel 0 for PWM
+
+    if (getRunningMode() == AUTO) {
+        state = 0; // State machine to track the current phase
+        stateStartTime = 0; // Start time for the current phase
+        stateCurrentThrottle = 0; // Current throttle percentage
+    }
 
     resetTimer(); // Assuming resetTimer() is defined elsewhere
 
@@ -87,6 +97,110 @@ bool MotorControl::startManual(String& error) {
     return true;
 }
 
+bool MotorControl::startAuto(String& error) {
+    if (throttleCut) {
+        error = "Cannot start motor: Throttle cut is enabled.";
+        return false;
+    }
+    // Set running mode to MANUAL
+    setRunningMode(AUTO);
+
+    warmDuration = settings.getTestWarmDuration(); // Duration for throttle ramp-up/down (in seconds)
+    phaseDuration = settings.getTestPhaseDuration(); // Duration for holding throttle levels (in seconds)
+
+    // Set running state to true
+    setRunning(true);
+
+    // Initialize throttle to 0
+    setThrottle(0);
+
+    // Start Timer
+    startTimer(); // Assuming startTimer() is defined elsewhere
+
+    state = 0; // State machine to track the current phase
+    stateStartTime = 0; // Start time for the current phase
+    stateCurrentThrottle = 0; // Current throttle percentage
+
+    Serial.println("Motor started in AUTO mode.");
+
+    return true;
+}
+
+void MotorControl::handleAutoTest() {
+    unsigned long currentTime = millis(); // Get the current time
+
+    switch (state) {
+        case 0: // Ramp up from 0% to 50%
+            if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
+            if (stateCurrentThrottle < 50) {
+                int elapsed = currentTime - stateStartTime;
+                stateCurrentThrottle = map(elapsed, 0, warmDuration * 1000, 0, 50); // Calculate throttle percentage
+                setThrottle(stateCurrentThrottle);
+            } else {
+                stateCurrentThrottle = 50;
+                setThrottle(stateCurrentThrottle);
+                stateStartTime = 0; // Reset start time
+                state = 1; // Move to the next state
+            }
+            Serial.println("Ramp up from 0% to 50%: " + String(stateCurrentThrottle) + "%"); // Debugging output
+            break;
+
+        case 1: // Hold at 50%
+            if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
+            if (currentTime - stateStartTime >= phaseDuration * 1000) {
+                stateStartTime = 0; // Reset start time
+                state = 2; // Move to the next state
+            }
+            Serial.println("Hold at 50%: " + String(stateCurrentThrottle) + "%"); // Debugging output
+            break;
+
+        case 2: // Ramp up from 50% to 100%
+            if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
+            if (stateCurrentThrottle < 100) {
+                int elapsed = currentTime - stateStartTime;
+                stateCurrentThrottle = map(elapsed, 0, warmDuration * 1000, 50, 100); // Calculate throttle percentage
+                setThrottle(stateCurrentThrottle);
+            } else {
+                stateCurrentThrottle = 100;
+                setThrottle(stateCurrentThrottle);
+                stateStartTime = 0; // Reset start time
+                state = 3; // Move to the next state
+            }
+            Serial.println("Ramp up from 50% to 100%: " + String(stateCurrentThrottle) + "%"); // Debugging output
+            break;
+
+        case 3: // Hold at 100%
+            if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
+            if (currentTime - stateStartTime >= phaseDuration * 1000) {
+                stateStartTime = 0; // Reset start time
+                state = 4; // Move to the next state
+            }
+            Serial.println("Hold at 100%: " + String(stateCurrentThrottle) + "%"); // Debugging output
+            break;
+
+        case 4: // Ramp down from 100% to 0%
+            if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
+            if (stateCurrentThrottle > 0) {
+                int elapsed = currentTime - stateStartTime;
+                stateCurrentThrottle = map(elapsed, 0, warmDuration * 1000, 100, 0); // Calculate throttle percentage
+                setThrottle(stateCurrentThrottle);
+            } else {
+                stateCurrentThrottle = 0;
+                setThrottle(stateCurrentThrottle);
+                stateStartTime = 0; // Reset start time
+                state = 5; // Move to the next state
+            }
+            Serial.println("Ramp down from 100% to 0%: " + String(stateCurrentThrottle) + "%"); // Debugging output
+            break;
+
+        case 5: // Stop the motor
+            stop();
+            state = 0; // Reset state machine for the next test
+            Serial.println("Motor stopped after auto test."); // Debugging output
+            break;
+    }
+}
+
 void MotorControl::stop() {
     // Set throttle to 0
     setThrottle(0);
@@ -94,6 +208,11 @@ void MotorControl::stop() {
     // Set running state to false
     setRunning(false);
     pauseTimer(); // Assuming pauseTimer() is defined elsewhere
+    if (getRunningMode() == AUTO) {
+        state = 0; // State machine to track the current phase
+        stateStartTime = 0; // Start time for the current phase
+        stateCurrentThrottle = 0; // Current throttle percentage
+    }
 
     // Reset ESC output
     ledcWrite(0, 0); // Assuming channel 0 for PWM

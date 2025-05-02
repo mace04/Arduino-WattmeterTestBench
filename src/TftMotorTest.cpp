@@ -255,6 +255,7 @@ void TftMotorTest::onStartPressed() {
         motorControl.startManual(error); // Set the motor to manual mode (replace with actual motor control logic)
     } else if(testType == AUTO) {
         // Set the motor to auto mode
+        motorControl.startAuto(error); // Set the motor to auto mode (replace with actual motor control logic)
     }   
 }
 

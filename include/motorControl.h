@@ -3,6 +3,7 @@
 
 #include <Arduino.h>
 #include "sensors.h"
+#include "Settings.h"
 
 // Pin definitions
 #define THROTTLE_CONTROL_PIN 36 // Pin for throttle control input
@@ -17,9 +18,11 @@ public:
     MotorControl();
 
     // Functions
-    void init(); // Initialize the motor control
+    void init(Settings& settings); // Initialize the motor control
     void reset(); // Method to reset the motor control state
     bool startManual(String& error); // Method to start the motor in manual mode
+    bool startAuto(String& error);
+    void handleAutoTest(); // Method to handle auto test
     void stop(); // Method to stop the motor
     
     void setThrottleCut(bool cut);
@@ -43,6 +46,13 @@ private:
     bool autoTestEnabled; // Global variable for auto test enabled
     bool running; // Member variable to track running state
     RunningMode runningMode; // Variable to store the current running mode
+    Settings settings;
+    int state; // State machine to track the current phase
+    unsigned long stateStartTime; // Start time for the current phase
+    int stateCurrentThrottle; // Current throttle percentage
+    int warmDuration; // Duration for throttle ramp-up/down (in seconds)
+    int phaseDuration; // Duration for holding throttle levels (in seconds)
+
 
     bool isThrottle(); // Method to determine if the throttle pin is at 0 or not
 };

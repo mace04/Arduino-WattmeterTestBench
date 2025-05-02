@@ -53,6 +53,9 @@ void core0Task(void *parameter) {
         handleWebServer(); // Handle web server requests
 
         if (motorControl.isRunning()) {
+            if (motorControl.getRunningMode() == AUTO) {
+                motorControl.handleAutoTest(); // Handle auto test
+            }
             tftMotorTest.Voltage = readVoltageSensor(); // Read voltage sensor
             tftMotorTest.Current = readCurrentSensor(); // Read current sensor
             tftMotorTest.Thrust = readWeightSensor(); // Read thrust sensor
@@ -61,7 +64,6 @@ void core0Task(void *parameter) {
             tftMotorTest.Time = getElapsedTime(); // Get elapsed time
             tftMotorTest.ThrottlePercent = motorControl.getThrottlePercent(); // Get throttle percentage
         }
-
         delay(10); // Delay to prevent task starvation
     }
 }
@@ -128,7 +130,7 @@ void setup() {
     tft.println("Settings Loaded");
     Serial.println("Settings Loaded");
 
-    motorControl.init(); // Initialize motor control
+    motorControl.init(settings); // Initialize motor control
     tft.println("Touch Device Initialised");
     Serial.println("Touch Device Initialised");
 
