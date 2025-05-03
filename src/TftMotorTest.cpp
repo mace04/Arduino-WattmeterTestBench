@@ -97,11 +97,11 @@ void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
     }
 
     // Calculate the new bar width
-    int barWidth = (tft.width() * throttlePercent) / 100;
+    int barWidth = ((tft.width() - 12) * throttlePercent) / 100; // Adjust for rectangle's left padding
 
     // Clear the previous bar area if needed
     if (throttlePercent < 100) {
-        int clearWidth = (tft.width() * (100 - throttlePercent)) / 100;
+        int clearWidth = ((tft.width() - 12) * (100 - throttlePercent)) / 100;
         tft.fillRect(barWidth + 12, tft.height() - 28, clearWidth - 2, 26, TFT_NAVY);
     }
 
