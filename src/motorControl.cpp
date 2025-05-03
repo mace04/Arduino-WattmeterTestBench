@@ -142,7 +142,6 @@ void MotorControl::handleAutoTest() {
                 stateStartTime = 0; // Reset start time
                 state = 1; // Move to the next state
             }
-            Serial.println("Ramp up from 0% to 50%: " + String(stateCurrentThrottle) + "%"); // Debugging output
             break;
 
         case 1: // Hold at 50%
@@ -151,7 +150,6 @@ void MotorControl::handleAutoTest() {
                 stateStartTime = 0; // Reset start time
                 state = 2; // Move to the next state
             }
-            Serial.println("Hold at 50%: " + String(stateCurrentThrottle) + "%"); // Debugging output
             break;
 
         case 2: // Ramp up from 50% to 100%
@@ -166,7 +164,6 @@ void MotorControl::handleAutoTest() {
                 stateStartTime = 0; // Reset start time
                 state = 3; // Move to the next state
             }
-            Serial.println("Ramp up from 50% to 100%: " + String(stateCurrentThrottle) + "%"); // Debugging output
             break;
 
         case 3: // Hold at 100%
@@ -175,7 +172,6 @@ void MotorControl::handleAutoTest() {
                 stateStartTime = 0; // Reset start time
                 state = 4; // Move to the next state
             }
-            Serial.println("Hold at 100%: " + String(stateCurrentThrottle) + "%"); // Debugging output
             break;
 
         case 4: // Ramp down from 100% to 0%
@@ -190,13 +186,11 @@ void MotorControl::handleAutoTest() {
                 stateStartTime = 0; // Reset start time
                 state = 5; // Move to the next state
             }
-            Serial.println("Ramp down from 100% to 0%: " + String(stateCurrentThrottle) + "%"); // Debugging output
             break;
 
         case 5: // Stop the motor
             stop();
             state = 0; // Reset state machine for the next test
-            Serial.println("Motor stopped after auto test."); // Debugging output
             break;
     }
 }
