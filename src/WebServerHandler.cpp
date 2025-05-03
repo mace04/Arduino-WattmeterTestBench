@@ -28,6 +28,16 @@ void initWebServer(Settings& settings) {
         return;
     }
 
+    server.on("/", HTTP_GET, [&]() {
+        File file = SPIFFS.open("/index.html", "r");
+        if (!file) {
+            server.send(404, "text/plain", "File not found");
+            return;
+        }
+        server.streamFile(file, "text/html");
+        file.close();
+    });
+    
     // Serve settings.html for GET /settings
     server.on("/settings", HTTP_GET, [&]() {
         handleGetSettings(server, settings);
@@ -60,13 +70,8 @@ void initWebServer(Settings& settings) {
         handlePostSettings(server, settings);
     });
 
-    // Handle OTA firmware update
-    server.on("/ota", HTTP_POST, []() {
-        handleOTAUpdate();
-    });
-
     // Serve files.html for GET /files
-    server.on("/files", HTTP_GET, [&]() {
+    server.on("/sdcard", HTTP_GET, [&]() {
         handleFileAccess(server);
     });
 

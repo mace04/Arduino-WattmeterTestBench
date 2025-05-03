@@ -27,6 +27,35 @@ h3 {
     text-align: center
 }
 
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+}
+
+.menu-item {
+    margin: 15px 0;
+}
+
+.menu-button {
+    display: inline-block;
+    width: 200px; /* Fixed width */
+    height: 50px; /* Fixed height */
+    line-height: 50px; /* Vertically center text */
+    font-size: 18px;
+    color: white;
+    background-color: #007bff;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center; /* Horizontally center text */
+    transition: background-color 0.3s;
+}
+
+.menu-button:hover {
+    background-color: #0056b3;
+}
+
 form {
     max-width: 600px;
     margin: 0 auto;

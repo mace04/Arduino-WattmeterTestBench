@@ -164,6 +164,12 @@ create a settings.html with the following requirements
     * All labels should be displayed above the inputs in separate row
     * Settings should be displayed in 2 columns
 
+using settings.html as a template and style.css as a stylsheet, create index.html to display a main menu with the following buttons
+    * Settings that links to settings.html
+    * Update Firmware that links to update.html
+    * SD Card that links to sdcard.html
+    * Internal Storage that links to spiffs.html
+
 create an update.html file with the following requirements
     * use style.css
     * Title heading on the top of the page of update firmware
