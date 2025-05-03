@@ -177,6 +177,10 @@ void TftMotorTest::updatePanelValue(int panelIndex, const char* value) {
 }
 
 void TftMotorTest::handleTouch() {
+    if (testType == AUTO && !motorControl.isRunning() && currentScreenState == TESTING) {
+        drawThrottleIndicator(0); // Reset throttle indicator if motor is not running
+        onStopPressed();
+    }
     if (digitalRead(TOUCH_IRQ) == LOW) {
         unsigned long currentTime = millis();
         if (currentTime - lastTouchTime < debounceDelay) {
@@ -247,8 +251,6 @@ void TftMotorTest::onStartPressed() {
     esp_timer_create(&timerArgs, &updateTimer);
     esp_timer_start_periodic(updateTimer, 500000); // 1 second (1,000,000 microseconds)
 
-    Serial.println("Start button pressed. Timer started.");
-
     String error;
     if(testType == MANUAL) {
         // Set the motor to manual mode
@@ -257,6 +259,9 @@ void TftMotorTest::onStartPressed() {
         // Set the motor to auto mode
         motorControl.startAuto(error); // Set the motor to auto mode (replace with actual motor control logic)
     }   
+    currentScreenState = TESTING; // Update the screen state to TESTING
+
+    Serial.println("Start button pressed. Timer started.");
 }
 
 void TftMotorTest::onStopPressed() {
@@ -270,8 +275,9 @@ void TftMotorTest::onStopPressed() {
         updateTimer = nullptr;
     }
 
-    Serial.println("Stop button pressed. Timer stopped.");
     motorControl.stop(); // Stop the motor (replace with actual motor control logic)
+    currentScreenState = IDLE; // Update the screen state to IDLE
+    Serial.println("Stop button pressed. Timer stopped.");
 }
 
 void TftMotorTest::onResetPressed() {
@@ -285,10 +291,11 @@ void TftMotorTest::onResetPressed() {
         updateTimer = nullptr;
     }
 
-    Serial.println("Stop button pressed. Timer stopped.");
     motorControl.reset(); // Reset the motor (replace with actual motor control logic)
-    // Update panel values
+    currentScreenState = IDLE; // Update the screen state to IDLE
 
+    // Update panel values
     updatePanelValue(PANEL_CONSUMPTION, "0"); // Reset consumption
     updatePanelValue(PANEL_TIME, "00:00");  // Reset time  
+    Serial.println("Stop button pressed. Timer stopped.");
 }

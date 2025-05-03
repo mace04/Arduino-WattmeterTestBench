@@ -23,8 +23,6 @@ public:
     TftMotorTest(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode));
     void init(TestType testType);
     void handleTouch();
-    void updateThrottle(int throttlePercent);
-    void updatePanelValues(); // Update only the values within the panels
 
 private:
     enum PanelIndex { PANEL_VOLTAGE = 0, PANEL_CURRENT, PANEL_THRUST, PANEL_POWER, PANEL_CONSUMPTION, PANEL_TIME }; // Define panel modes
@@ -68,12 +66,17 @@ private:
     static const int NUM_PANELS = 6; // Number of panels
     Panel panels[NUM_PANELS];       // Array to store panel details
 
+    enum ScreenState{IDLE, TESTING};
+    ScreenState currentScreenState = IDLE; // Current state of the screen
+
     static void IRAM_ATTR onTimer(void* arg); // Timer interrupt handler
     void updatePanelValue(int panelIndex, const char* value); // Update a specific panel's value
     void drawRibbon();
     void drawButton(const Button& button);
     void setButtonState(Button& button, ButtonState state);
     void drawThrottleIndicator(int throttlePercent);
+    void updateThrottle(int throttlePercent);
+    void updatePanelValues(); // Update only the values within the panels
     void drawPanels();
     void drawPanel(const Panel& panel);
     void onStartPressed();
