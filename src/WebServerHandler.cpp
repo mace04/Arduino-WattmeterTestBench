@@ -75,6 +75,15 @@ void initWebServer(Settings& settings) {
         handleFileAccess(server);
     });
 
+    // Serve files.html for GET /files
+    server.on("/spiffs", HTTP_GET, [&]() {
+        handleStorageAccess(server);
+    });
+
+    server.on("/getfile", HTTP_GET, [&]() {
+        handleFileContent(server);
+    });
+
     // Handle realtime streaming of sensor readings
     server.on("/stream", HTTP_GET, [&]() {
         handleRealtimeStreaming(server);
@@ -160,11 +169,6 @@ void handlePostSettings(WebServer& server, Settings& settings) {
     }
 }
 
-void handleOTAUpdate() {
-    // Placeholder for OTA firmware update logic
-    Serial.println("OTA update triggered.");
-}
-
 void handleFileAccess(WebServer& server) {
     if (!SD.begin()) {
         server.send(500, "text/plain", "Failed to initialize SD card");
@@ -183,6 +187,86 @@ void handleFileAccess(WebServer& server) {
 
     server.send(200, "application/json", fileList);
 }
+
+void handleStorageAccess(WebServer& server) {
+    if (!SPIFFS.begin(true)) {
+        server.send(500, "text/plain", "Failed to initialize SPIFFS");
+        return;
+    }
+    Serial.println("Handling GET /spiffs request");
+    File spiffsFile = SPIFFS.open("/spiffs.html", "r");
+    if (!spiffsFile) {
+        server.send(500, "text/plain", "Failed to open settings.html");
+        return;
+    }
+
+    // Read the file content into a String
+    String html = spiffsFile.readString();
+    spiffsFile.close();
+
+
+    // Iterate through SPIFFS files and add them with radio buttons
+    File root = SPIFFS.open("/");
+    File file = root.openNextFile();
+    String htmlFileList = "";
+    while (file) {
+        htmlFileList += "<div class=\"file-item\">";
+        htmlFileList += "<input type=\"radio\" name=\"fileRadio\" value=\"" + String(file.name()) + "\">";
+        htmlFileList += "<label>" + String(file.name()) + "</label>";
+        htmlFileList += "</div>";
+        file = root.openNextFile();
+    }
+
+    // Replace placeholders with actual settings values
+    html.replace("{{FILELIST}}", htmlFileList);
+
+    // Send the generated HTML to the client
+    server.send(200, "text/html", html);
+}
+
+void handleFileContent(WebServer& server){
+    Serial.println("Handling GET /spiffs request");
+    if (server.hasArg("filename") && server.hasArg("from")) {
+
+        if(server.arg("from") == "sdcard"){
+            if (!SD.begin()) {
+                server.send(500, "text/plain", "Failed to initialize SD card");
+                return;
+            }
+            File file = SD.open("/" + server.arg("filename"), "r");
+            if (!file) {
+                server.send(404, "text/plain", "File not found");
+                return;
+            }
+            else{
+                server.streamFile(file, "text/css");
+                file.close();
+            }
+        } else if(server.arg("from") == "spiffs"){
+            if (!SPIFFS.begin(true)) {
+                server.send(500, "text/plain", "Failed to initialize SPIFFS");
+                return;
+            }
+            else{
+                File file = SPIFFS.open("/" + server.arg("filename"), "r");
+                if (!file) {
+                    server.send(404, "text/plain", "File not found");
+                    return;
+                }
+                else{
+                    server.streamFile(file, "text/css");
+                    file.close();
+                }
+            }
+        } else {
+            server.send(400, "text/plain", "Invalid request");
+            return;
+        }
+    } else {
+        server.send(400, "text/plain", "Invalid request");
+    }
+}
+
 
 void handleRealtimeStreaming(WebServer& server) {
     String csvData = "Voltage,Current,Weight,Watts\n";

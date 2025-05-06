@@ -8,7 +8,7 @@ html {
 
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+margin: 20px;
     padding: 20px;
     background-color: #f4f4f9;
 }
@@ -183,4 +183,51 @@ p {
     left: 0;
     right: 0;
     z-index: 1000;
+}
+
+.file-list {
+    padding: 10px;
+    width: 33%;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.file-item {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+.file-item input[type="radio"] {
+    margin-right: 10px;
+}
+
+.file-item label {
+    font-size: 16px;
+    color: #333;
+}
+
+textarea#file-content {
+    font-family: monospace;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    resize: none;
+    width: 66%;
+    height: 300px;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 20px auto;
+    /* max-width: 800px; */
+    gap: 20px;
+    width: 100%;
 }

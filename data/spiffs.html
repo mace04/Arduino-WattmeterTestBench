@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal Storage</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        async function viewFile() {
+            const selectedFile = document.querySelector('input[name="fileRadio"]:checked');
+            const fileContentBox = document.getElementById('file-content');
+            if (selectedFile) {
+                try {
+                    const response = await fetch("getfile?filename=" + selectedFile.value + "&from=spiffs");
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch file content');
+                    }
+                    let content = await response.text();
+
+                    // Check if the file is a JSON file based on its extension
+                    if (selectedFile.value.endsWith('.json')) {
+                        try {
+                            const jsonContent = JSON.parse(content); // Parse the content as JSON
+                            content = JSON.stringify(jsonContent, null, 4); // Prettify JSON with 4 spaces indentation
+                        } catch (e) {
+                            console.error('Error parsing JSON:', e);
+                            content = 'Error parsing JSON content.';
+                        }
+                    }
+
+                    fileContentBox.value = content; // Display file content in the textbox
+                } catch (error) {
+                    console.error('Error loading file content:', error);
+                    fileContentBox.value = 'Error loading file content.';
+                }
+            } else {
+                alert('Please select a file to view.');
+            }
+        }
+
+        // Automatically load file content when a file is selected
+        function setupFileSelection() {
+            const fileRadios = document.querySelectorAll('input[name="fileRadio"]');
+            fileRadios.forEach(radio => {
+                radio.addEventListener('change', viewFile);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', setupFileSelection);
+    </script>
+</head>
+<body>
+    <h1>Internal Storage</h1>
+    <div class="container">
+        <div class="file-list">
+            {{FILELIST}}
+        </div>
+        <textarea id="file-content" readonly></textarea>
+    </div>
+</body>
+</html>

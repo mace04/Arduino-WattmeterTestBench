@@ -20,7 +20,8 @@ void handlePostUpdate(WebServer& server);
 void handlePostUpload(WebServer& server, Settings& settings);
 void handleGetSettings(WebServer& server, Settings& settings, bool isSaved = false);
 void handlePostSettings(WebServer& server, Settings& settings);
-void handleOTAUpdate();
 void handleFileAccess(WebServer& server);
+void handleStorageAccess(WebServer& server);
+void handleFileContent(WebServer& server);
 void handleRealtimeStreaming(WebServer& server);
 #endif // WEBSERVERHANDLER_H
