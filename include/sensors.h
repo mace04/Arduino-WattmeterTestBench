@@ -4,10 +4,10 @@
 #include <Arduino.h>
 
 // GPIO pin definitions
-#define VOLTAGE_SENSOR_PIN 34
-#define CURRENT_SENSOR_PIN 39
-#define HX711_DT_PIN 32
-#define HX711_SCK_PIN 33
+#define VOLTAGE_SENSOR_PIN 35
+#define CURRENT_SENSOR_PIN 34
+#define HX711_DT_PIN 33
+#define HX711_SCK_PIN 25
 
 // Running average parameters
 const int AVERAGE_WINDOW_SIZE = 10;
