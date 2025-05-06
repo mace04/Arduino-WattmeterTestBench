@@ -11,8 +11,8 @@ Settings::Settings() {
     thrustOffset = 0.00;
     maxCurrent = 100;
     maxThrust = 4900;
-    testPhaseDuration = 45;
-    testWarmDuration = 15; // Assuming testWarmDuration is defined
+    testPhaseDuration = 15;
+    testWarmDuration = 5; // Assuming testWarmDuration is defined
 }
 
 void Settings::loadSettings() {
@@ -25,6 +25,7 @@ void Settings::loadSettings() {
 
 void Settings::saveSettings() {
     writeToSPIFFS();
+    readFromSPIFFS(); // Read back to verify
 }
 
 void Settings::readFromSPIFFS() {
