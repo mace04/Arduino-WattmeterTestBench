@@ -2,6 +2,7 @@
 #define SENSORS_H
 
 #include <Arduino.h>
+// #include <HX711.h>
 
 // GPIO pin definitions
 #define VOLTAGE_SENSOR_PIN 35
