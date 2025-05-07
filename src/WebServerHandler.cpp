@@ -124,9 +124,9 @@ void handleGetSettings(WebServer& server, Settings& settings, bool isSaved) {
     // Replace placeholders with actual settings values
     html.replace("{{SSID}}", settings.getSSID());
     html.replace("{{PASSWORD}}", settings.getPassword());
-    html.replace("{{VOLTS_PER_POINT_VOLTAGE}}", String(settings.getVoltsPerPointVoltage()));
+    html.replace("{{VOLTS_PER_POINT_VOLTAGE}}", String(settings.getVoltsPerPointVoltage(),6));
     html.replace("{{VOLTAGE_OFFSET}}", String(settings.getVoltageOffset()));
-    html.replace("{{VOLTS_PER_POINT_CURRENT}}", String(settings.getVoltsPerPointCurrent()));
+    html.replace("{{VOLTS_PER_POINT_CURRENT}}", String(settings.getVoltsPerPointCurrent(),6));
     html.replace("{{CURRENT_OFFSET}}", String(settings.getCurrentOffset()));
     html.replace("{{THRUST_OFFSET}}", String(settings.getThrustOffset()));
     html.replace("{{MAX_CURRENT}}", String(settings.getMaxCurrent()));
