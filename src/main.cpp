@@ -53,7 +53,7 @@ void core0Task(void *parameter) {
         handleWebServer(); // Handle web server requests
 
         if (motorControl.isRunning()) {
-            if (motorControl.getRunningMode() == AUTO) {
+            if (motorControl.getRunningMode() == MotorControl::RunningMode::AUTO) {
                 motorControl.handleAutoTest(); // Handle auto test
             }
             tftMotorTest.Voltage = readVoltageSensor(); // Read voltage sensor
