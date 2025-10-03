@@ -19,7 +19,7 @@
 // Touch Controller (XPT2046)
 #define USE_TOUCH
 #define TOUCH_CS 15
-#define TOUCH_IRQ 35  // Optional
+#define TOUCH_IRQ 13  // Optional
 
 // SD Card Configuration
 #define SD_CS   13
