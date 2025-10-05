@@ -17,6 +17,7 @@ MotorControl motorControl; // Create an instance of the MotorControl class
 TFT_eSPI tft = TFT_eSPI();
 XPT2046_Touchscreen ts(TOUCH_CS, TOUCH_IRQ); // Touchscreen instance
 TftScreenMode currentScreen = MAIN_MENU;
+struct Profile testProfile = {"",0,0,0};
 
 float voltage = 0.0; // Variable to store voltage reading
 float current = 0.0; // Variable to store current reading
@@ -78,7 +79,7 @@ void core1Task(void *parameter) {
                 tftAbout.handleTouch();
             } else if (currentScreen == MANUAL_TEST || currentScreen == AUTO_TEST) {
                 tftMotorTest.handleTouch();
-            }
+            } 
         }
         delay(10); // Delay to prevent task starvation
     }
@@ -147,7 +148,7 @@ void setup() {
     Serial.println("Web Server Initialised");
 
     Serial.println("Setup complete. Tasks started on both cores.");
-    tftMainMenu.init(); // Initialize the main menu
+    screenChangeCallback(MAIN_MENU); 
 
     // Create tasks for each core
     xTaskCreatePinnedToCore(

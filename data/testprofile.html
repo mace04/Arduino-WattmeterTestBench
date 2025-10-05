@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test Profile Details</title>
+    <link rel="stylesheet" href="style.css">
+    <script>
+        // JavaScript to hide the banner after 3 seconds and redirect
+        document.addEventListener("DOMContentLoaded", () => {
+            const banner = document.getElementById("message-banner");
+            if (banner) {
+                setTimeout(() => {
+                    banner.style.display = "none";
+                    window.location.href = "index";
+                }, 3000);
+            }
+
+            // Hide/show propeller pitch based on isEDF selection
+            const edfRadios = document.querySelectorAll('input[name="isEDF"]');
+            const propPitchGroup = document.getElementById("propPitch-group");
+            const emptyGroup = document.getElementById("empty-group");
+            function updatePropPitchVisibility() {
+                const isEDF = document.getElementById("isEDF_true").checked;
+                propPitchGroup.style.display = isEDF ? "none" : "block";
+                emptyGroup.style.display = isEDF ? "block" : "none";
+            }
+            edfRadios.forEach(radio => {
+                radio.addEventListener("change", updatePropPitchVisibility);
+            });
+            updatePropPitchVisibility();
+        });
+    </script>
+</head>
+<body>
+    <!-- Red banner for "Settings Saved" -->
+    {{#DISPLAY_BANNER}}
+    <div id="message-banner">
+        Settings Saved
+    </div>
+    {{/DISPLAY_BANNER}}
+    <h1>Test Profile Details</h1>
+    <form method="POST" action="/testprofile">
+        <div class="form-container">
+            <div class="form-group">
+                <label for="motorName">Motor Name:</label>
+                <input type="text" id="motorName" name="motorName" maxlength="50" pattern="[A-Za-z0-9 ]{1,50}" required>
+            </div>
+            <div class="form-group">
+            </div>
+            <div class="form-group">
+                <label>Motor Type:</label>
+                <div style="display: flex; gap: 20px; align-items: center;">
+                    <label for="isEDF_false">
+                        <input type="radio" id="isEDF_false" name="isEDF" value="false" checked>
+                        Propeller
+                    </label>
+                    <label for="isEDF_true">
+                        <input type="radio" id="isEDF_true" name="isEDF" value="true">
+                        EDF
+                    </label>
+                </div>
+            </div>
+            <div class="form-group">
+            </div>
+            <div class="form-group">
+                <label for="propDiameter">Propeller Diameter (Inches):</label>
+                <input type="number" id="propDiameter" name="propDiameter" min="0" max="150" maxlength="3" value="8" required>
+            </div>
+            <div class="form-group" id="propPitch-group">
+                <label for="propPitch">Propeller Pitch (Inches):</label>
+                <input type="number" id="propPitch" name="propPitch" min="1" max="20" maxlength="2" value="4" required>
+            </div>
+            <div class="form-group" id="empty-group">
+            </div>
+            <div class="form-group">
+                <label for="batteryCells">Number of Battery Cells:</label>
+                <input type="number" id="batteryCells" name="batteryCells" min="1" max="9" maxlength="1" value="3" required>
+            </div>
+            <div class="form-group">
+            </div>
+        </div>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

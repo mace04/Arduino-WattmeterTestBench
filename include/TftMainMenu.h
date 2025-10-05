@@ -5,6 +5,8 @@
 #include <XPT2046_Touchscreen.h>
 #include "tft_config.h"
 
+extern Profile testProfile;
+
 class TftMainMenu {
 public:
     TftMainMenu(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode));
@@ -21,9 +23,11 @@ private:
 
     void drawButton(const Button& button);
     void handleMenuSelection(TftScreenMode screenMode);
+    void handleProfileSelection();
 
     TFT_eSPI& tft;
     XPT2046_Touchscreen& ts;
+    String lastProfileName; // To track the last displayed profile name
     void (*screenChangeCallback)(TftScreenMode); // Callback for screen change
 
     // Private button properties

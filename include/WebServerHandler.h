@@ -10,6 +10,9 @@
 #include "sensors.h"
 #include "TftUpdate.h"
 #include "motorControl.h"
+#include "tft_config.h"
+
+extern Profile testProfile;
 
 // Function declarations
 void initWiFi(const char* ssid, const char* password);
@@ -24,4 +27,6 @@ void handleFileAccess(WebServer& server);
 void handleStorageAccess(WebServer& server);
 void handleFileContent(WebServer& server);
 void handleRealtimeStreaming(WebServer& server);
+void handleGetTestProfile(WebServer& server, bool isSaved = false);
+void handlePostTestProfile(WebServer& server);
 #endif // WEBSERVERHANDLER_H

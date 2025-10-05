@@ -37,6 +37,16 @@ void initWebServer(Settings& settings) {
         server.streamFile(file, "text/html");
         file.close();
     });
+
+    server.on("/index", HTTP_GET, [&]() {
+        File file = SPIFFS.open("/index.html", "r");
+        if (!file) {
+            server.send(404, "text/plain", "File not found");
+            return;
+        }
+        server.streamFile(file, "text/html");
+        file.close();
+    });    
     
     // Serve settings.html for GET /settings
     server.on("/settings", HTTP_GET, [&]() {
@@ -99,6 +109,16 @@ void initWebServer(Settings& settings) {
         handlePostUpdate(server);
     }, [&settings]() {
         handlePostUpload(server, settings);
+    });
+
+    // Serve testprofile.html for GET /testprofile
+    server.on("/testprofile", HTTP_GET, [&]() {
+        handleGetTestProfile(server);
+    });
+
+    // Handle POST /testprofile
+    server.on("/testprofile", HTTP_POST, [&]() {
+        handlePostTestProfile(server);
     });
 
     server.begin();
@@ -170,6 +190,7 @@ void handlePostSettings(WebServer& server, Settings& settings) {
 }
 
 void handleFileAccess(WebServer& server) {
+    setCS(SDCARD); // Set the SD card CS pin
     if (!SD.begin()) {
         server.send(500, "text/plain", "Failed to initialize SD card");
         return;
@@ -184,7 +205,7 @@ void handleFileAccess(WebServer& server) {
         file = root.openNextFile();
     }
     fileList += "]";
-
+    setCS(PANEL); // Set the SD card CS pin
     server.send(200, "application/json", fileList);
 }
 
@@ -372,5 +393,66 @@ void handlePostUpload(WebServer& server, Settings& settings) {
     } else if (upload.status == UPLOAD_FILE_ABORTED) {
         Update.abort();
         Serial.println("Update Aborted");
+    }
+}
+
+void handleGetTestProfile(WebServer& server, bool isSaved){
+    Serial.println("Handling GET /testprofile request");
+    File file = SPIFFS.open("/testprofile.html", "r");
+    if (!file) {
+        server.send(500, "text/plain", "Failed to open testprofile.html");
+        return;
+    }
+
+    // Read the file content into a String
+    String html = file.readString();
+    file.close();
+
+    // Check if settings were saved successfully
+    if (isSaved) {
+        html.replace("{{#DISPLAY_BANNER}}", ""); // Enable the banner
+        html.replace("{{/DISPLAY_BANNER}}", "");
+    } else {
+        html.replace("{{#DISPLAY_BANNER}}", "<!--");
+        html.replace("{{/DISPLAY_BANNER}}", "-->");
+    }    
+    // Send the modified HTML to the client
+    server.send(200, "text/html", html);
+}
+
+void handlePostTestProfile(WebServer& server){
+    Serial.println("Handling POST /testprofile request");
+    if (server.hasArg("motorName") && server.hasArg("propDiameter") && server.hasArg("propPitch") && server.hasArg("batteryCells")) {
+        String motorName = server.arg("motorName");
+        int propDiameter = server.arg("propDiameter").toInt();
+        int propPitch = server.arg("propPitch").toInt();
+        int batteryCells = server.arg("batteryCells").toInt();
+        bool isEDF = (server.arg("isEDF") == "true");
+
+        // Validate inputs
+        if (motorName.length() < 1 || motorName.length() > 50 || batteryCells < 2 || batteryCells > 8) {
+            server.send(400, "text/plain", "Invalid input values");
+            return;
+        }
+
+        // Save to testprofile.txt on SPIFFS
+        File file = SPIFFS.open("/testprofile.json", "w");
+        if (!file) {
+            server.send(500, "text/plain", "Failed to open testprofile.json for writing");
+            return;
+        }
+        file.printf("{\"motor\": \"%s\", \"diameter\": %d, \"pitch\": %d, \"cells\": %d}", motorName.c_str(), propDiameter, propPitch, batteryCells);
+        file.close();
+
+        testProfile.name = motorName;
+        testProfile.isEDF = isEDF;
+        testProfile.diameter = propDiameter;
+        testProfile.pitch = propPitch;
+        testProfile.cells = batteryCells;
+
+        Serial.println("Test profile saved successfully.");
+        handleGetTestProfile(server, true); // Redirect to GET /testprofile with success message
+    } else {
+        server.send(400, "text/plain", "Invalid request");
     }
 }

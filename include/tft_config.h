@@ -22,7 +22,7 @@
 #define TOUCH_IRQ 13  // Optional
 
 // SD Card Configuration
-#define SD_CS   13
+#define SD_CS   17
 #define SD_MOSI 23
 #define SD_MISO 19
 #define SD_SCLK 18
@@ -37,7 +37,7 @@ enum TftScreenMode {
     MANUAL_TEST,
     AUTO_TEST,
     ABOUT,
-    // SETTINGS,
+    TEST_PROFILE,
     // LOGGING,
     ERROR
 };
@@ -51,5 +51,14 @@ enum Device {
 
 void setCS(Device device);
 bool isCSActive(Device device);
+
+struct Profile{
+    String name;
+    bool isEDF;
+    int diameter;
+    int pitch;
+    int cells;
+};
+
 
 #endif

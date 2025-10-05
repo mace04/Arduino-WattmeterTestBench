@@ -15,6 +15,9 @@ TftMainMenu::TftMainMenu(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenCh
     buttons[0] = {centerX, topY, buttonWidth, buttonHeight, "Manual Test", MANUAL_TEST, false};
     buttons[1] = {centerX, centerY, buttonWidth, buttonHeight, "Auto Test", AUTO_TEST, false};
     buttons[2] = {centerX, bottomY, buttonWidth, buttonHeight, "About", ABOUT, false};
+
+    lastProfileName = "."; // Track last displayed profile name
+
 }
 
 void TftMainMenu::init() {
@@ -53,6 +56,7 @@ void TftMainMenu::drawButton(const Button& button) {
 }
 
 void TftMainMenu::handleTouch() {
+    handleProfileSelection();
     if (digitalRead(TOUCH_IRQ) == LOW && ts.touched()) {
         unsigned long currentTime = millis();
         if (currentTime - lastTouchTime < debounceDelay) {
@@ -89,5 +93,36 @@ void TftMainMenu::handleTouch() {
 void TftMainMenu::handleMenuSelection(TftScreenMode screenMode) {
     if (screenChangeCallback) {
         screenChangeCallback(screenMode); // Notify the callback about the screen change
+    }
+}
+
+void TftMainMenu::handleProfileSelection() {
+    bool lastWasEmpty = lastProfileName.isEmpty();
+    bool currentIsEmpty = testProfile.name.isEmpty();
+
+    // Only update if the state (empty/non-empty) or name has changed
+    String displayName = testProfile.name + " (" + (testProfile.isEDF ? ("EDF " + String(testProfile.diameter) + "mm") : (String(testProfile.diameter) + "x" + String(testProfile.pitch))) + " @ " + String(testProfile.cells) + "S)";
+    if (lastProfileName != displayName) {
+        setCS(PANEL); // Set CS for TFT panel
+
+        int ribbonHeight = 32;
+        tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_NAVY); // Clear top area
+
+        if (!currentIsEmpty) {
+            tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_NAVY); // Navy ribbon
+            tft.setTextColor(TFT_WHITE, TFT_NAVY);
+            tft.setTextSize(2);
+            tft.setTextDatum(TC_DATUM);
+            tft.drawString(displayName, tft.width() / 2, ribbonHeight / 2 - 4);
+        } else {
+            tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_RED); // Red ribbon
+            tft.setTextColor(TFT_WHITE, TFT_RED);
+            tft.setTextSize(1);
+            tft.setTextDatum(TC_DATUM);
+            tft.drawString("No Test Profile selected", tft.width() / 2, ribbonHeight / 2 - 4);
+        }
+
+        setCS(TOUCH); // Set CS for touch controller
+        lastProfileName = displayName;
     }
 }
