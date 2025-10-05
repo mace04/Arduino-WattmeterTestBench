@@ -24,6 +24,20 @@ void TftMainMenu::init() {
     setCS(PANEL); // Set CS for TFT panel
     tft.fillScreen(TFT_NAVY);
 
+    int ribbonHeight = 32;
+    tft.setTextSize(2);
+    if (!testProfile.name.isEmpty()) {
+        tft.setTextColor(TFT_WHITE, TFT_NAVY);
+        tft.setTextDatum(TC_DATUM);
+        tft.drawString(lastProfileName, tft.width() / 2, ribbonHeight / 2 - 4);
+    } else {
+        tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_RED); // Red ribbon
+        tft.setTextColor(TFT_WHITE, TFT_RED);
+        tft.setTextDatum(TC_DATUM);
+        tft.drawString("No Test Profile selected", tft.width() / 2, ribbonHeight / 2 - 4);
+    }
+
+
     // Draw all buttons
     for (int i = 0; i < 3; i++) {
         drawButton(buttons[i]);
@@ -108,16 +122,15 @@ void TftMainMenu::handleProfileSelection() {
         int ribbonHeight = 32;
         tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_NAVY); // Clear top area
 
+        tft.setTextSize(2);
         if (!currentIsEmpty) {
             tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_NAVY); // Navy ribbon
             tft.setTextColor(TFT_WHITE, TFT_NAVY);
-            tft.setTextSize(2);
             tft.setTextDatum(TC_DATUM);
             tft.drawString(displayName, tft.width() / 2, ribbonHeight / 2 - 4);
         } else {
             tft.fillRect(0, 0, tft.width(), ribbonHeight, TFT_RED); // Red ribbon
             tft.setTextColor(TFT_WHITE, TFT_RED);
-            tft.setTextSize(1);
             tft.setTextDatum(TC_DATUM);
             tft.drawString("No Test Profile selected", tft.width() / 2, ribbonHeight / 2 - 4);
         }
