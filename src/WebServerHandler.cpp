@@ -190,9 +190,12 @@ void handlePostSettings(WebServer& server, Settings& settings) {
 }
 
 void handleFileAccess(WebServer& server) {
+
     setCS(SDCARD); // Set the SD card CS pin
-    if (!SD.begin()) {
+    SPI.begin(18,19,23); // Initialize SPI bus
+    if (!SD.begin(SD_CS)) {
         server.send(500, "text/plain", "Failed to initialize SD card");
+        setCS(TOUCH); // Set the SD card CS pin
         return;
     }
 
@@ -205,7 +208,7 @@ void handleFileAccess(WebServer& server) {
         file = root.openNextFile();
     }
     fileList += "]";
-    setCS(PANEL); // Set the SD card CS pin
+    setCS(TOUCH); // Set the SD card CS pin
     server.send(200, "application/json", fileList);
 }
 
