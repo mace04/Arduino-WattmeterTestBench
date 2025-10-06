@@ -117,7 +117,8 @@ void setup() {
     delay(1000);
     tft.fillScreen(TFT_BLUE);
     delay(1000);
-    tft.println("TFT Device Initialised");
+    tft.setTextSize(2);
+    tft.setTextColor(TFT_WHITE, TFT_BLUE);
     Serial.println("TFT Device Initialised");
 
     ts.begin();
@@ -132,8 +133,8 @@ void setup() {
     Serial.println("Settings Loaded");
 
     motorControl.init(settings); // Initialize motor control
-    tft.println("Touch Device Initialised");
-    Serial.println("Touch Device Initialised");
+    tft.println("Motor Control Initialised");
+    Serial.println("Motor Control Initialised");
 
     initSensors(); // Initialize sensors
     tft.println("Sensors Initialised");
@@ -148,6 +149,7 @@ void setup() {
     Serial.println("Web Server Initialised");
 
     Serial.println("Setup complete. Tasks started on both cores.");
+    delay(5000);
     screenChangeCallback(MAIN_MENU); 
 
     // Create tasks for each core
