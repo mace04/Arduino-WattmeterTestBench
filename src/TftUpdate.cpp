@@ -5,7 +5,6 @@ TftUpdate::TftUpdate(TFT_eSPI& tft) : tft(tft) {}
 void TftUpdate::init() {
     // Set the background color
     setCS(PANEL); // Set CS for TFT panel
-    tft.setRotation(1); // Adjust as needed
     tft.fillScreen(backgroundColor);
 
     // Calculate the position of the box
@@ -20,7 +19,7 @@ void TftUpdate::init() {
     tft.setTextSize(2);
     int16_t textWidth = tft.textWidth("Updating Firmware", 2);
     int16_t textHeight = 16; // Approximate height for font size 2
-    int textX = boxX + (boxWidth - textWidth) / 2;
+    int textX = boxX + 5 + (boxWidth - textWidth) / 2;
     int textY = boxY + (boxHeight - textHeight) / 2;
     tft.setCursor(textX, textY);
     tft.print("Updating Firmware");
