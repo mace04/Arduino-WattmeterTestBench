@@ -104,7 +104,7 @@ void setup() {
 
     // Initialise TFT touch screen
     tft.init();
-    tft.setRotation(1); // Adjust as needed
+    tft.setRotation(3); // Adjust as needed
 
     // Initialize touchscreen
     setCS(PANEL); // Set CS for TFT panel

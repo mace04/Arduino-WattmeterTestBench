@@ -42,7 +42,7 @@ void TftMotorTest::init(TestType testType) {
 
     // Draw the throttle indicator
     // Draw the throttle background
-    tft.drawRect(10, tft.height() - 30, tft.width() - 10, 30, TFT_WHITE);
+    tft.drawRect(10, tft.height() - 30, tft.width() - 18, 30, TFT_WHITE);
     drawThrottleIndicator(0); // Start with 0% throttle
 
     // Draw the panels
@@ -97,11 +97,11 @@ void TftMotorTest::drawThrottleIndicator(int throttlePercent) {
     }
 
     // Calculate the new bar width
-    int barWidth = ((tft.width() - 12) * throttlePercent) / 100; // Adjust for rectangle's left padding
+    int barWidth = ((tft.width() - 20) * throttlePercent) / 100; // Adjust for rectangle's left padding
 
     // Clear the previous bar area if needed
     if (throttlePercent < 100) {
-        int clearWidth = ((tft.width() - 12) * (100 - throttlePercent)) / 100;
+        int clearWidth = ((tft.width() - 20) * (100 - throttlePercent)) / 100;
         tft.fillRect(barWidth + 12, tft.height() - 28, clearWidth - 2, 26, TFT_NAVY);
     }
 
@@ -190,8 +190,8 @@ void TftMotorTest::handleTouch() {
         lastTouchTime = currentTime;
 
         TS_Point p = ts.getPoint();
-        int x = map(p.y, 4095, 0, 0, tft.width()); // Map touch X to screen X
-        int y = map(p.x, 4095, 0, 0, tft.height()); // Map touch Y to screen Y
+        int x = map(p.y, 0, 4095, 0, tft.width()); // Map touch X to screen X
+        int y = map(p.x, 0, 4095, 0, tft.height()); // Map touch Y to screen Y
         Serial.println("Touch coordinates: " + String(x) + ", " + String(y));
 
         setCS(PANEL); // Set CS for TFT panel
