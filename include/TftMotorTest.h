@@ -82,6 +82,7 @@ private:
     void onStartPressed();
     void onStopPressed();
     void onResetPressed();
+    void showStopPressedBox();
 };
 
 #endif // TFT_MOTOR_TEST_H

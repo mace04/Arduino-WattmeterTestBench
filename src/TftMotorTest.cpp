@@ -177,10 +177,24 @@ void TftMotorTest::updatePanelValue(int panelIndex, const char* value) {
 }
 
 void TftMotorTest::handleTouch() {
-    if (testType == AUTO && !motorControl.isRunning() && currentScreenState == TESTING) {
+    static bool errorBoxDisplayed;
+
+    // Check for throttle cut during a running test
+    if (currentScreenState == TESTING && motorControl.getThrottleCut()) {
+        showStopPressedBox();
+        motorControl.stop(); // Optionally stop the motor
         drawThrottleIndicator(0); // Reset throttle indicator if motor is not running
-        onStopPressed();
-    }
+        setButtonState(stopButton, DISABLE);
+        setButtonState(startButton, ENABLE);
+        currentScreenState = IDLE;
+        errorBoxDisplayed = true;
+        return;
+    }    
+
+    // if (testType == AUTO && !motorControl.isRunning() && currentScreenState == TESTING) {
+    //     drawThrottleIndicator(0); // Reset throttle indicator if motor is not running
+    //     onStopPressed();
+    // }
     if (digitalRead(TOUCH_IRQ) == LOW) {
         unsigned long currentTime = millis();
         if (currentTime - lastTouchTime < debounceDelay) {
@@ -200,7 +214,6 @@ void TftMotorTest::handleTouch() {
                 y >= exitButton.y && y <= exitButton.y + exitButton.height) {
             if (screenChangeCallback) {
                 Serial.println("Exit button pressed, changing screen to MAIN_MENU");
-                // Stop and delete the timer
                 if (updateTimer) {
                     esp_timer_stop(updateTimer);
                     esp_timer_delete(updateTimer);
@@ -213,7 +226,7 @@ void TftMotorTest::handleTouch() {
         // Handle Start button
         if (x >= startButton.x && x <= startButton.x + startButton.width &&
             y >= startButton.y && y <= startButton.y + startButton.height &&
-                startButton.state == ENABLE) {
+            startButton.state == ENABLE) {
             Serial.println("Start button pressed");
             onStartPressed();
         }
@@ -221,7 +234,7 @@ void TftMotorTest::handleTouch() {
         // Handle Stop button
         if (x >= stopButton.x && x <= stopButton.x + stopButton.width &&
             y >= stopButton.y && y <= stopButton.y + stopButton.height &&
-                stopButton.state == ENABLE) {
+            stopButton.state == ENABLE) {
             Serial.println("Stop button pressed");
             onStopPressed();
         }
@@ -229,9 +242,14 @@ void TftMotorTest::handleTouch() {
         // Handle Reset button
         if (x >= resetButton.x && x <= resetButton.x + resetButton.width &&
             y >= resetButton.y && y <= resetButton.y + resetButton.height &&
-                resetButton.state == ENABLE) {
+            resetButton.state == ENABLE) {
             Serial.println("Reset button pressed");
+            // motorControl.setThrottleCut(false); // Reset throttle cut
             onResetPressed();
+            if(errorBoxDisplayed){
+                errorBoxDisplayed = false;
+                init(testType); // Re-initialize the screen
+            }
         }
         setCS(TOUCH); // Set CS for touch controller
     }
@@ -298,4 +316,24 @@ void TftMotorTest::onResetPressed() {
     updatePanelValue(PANEL_CONSUMPTION, "0"); // Reset consumption
     updatePanelValue(PANEL_TIME, "00:00");  // Reset time  
     Serial.println("Stop button pressed. Timer stopped.");
+}
+
+void TftMotorTest::showStopPressedBox() {
+    setCS(PANEL);
+    int boxWidth = tft.width() / 2;
+    int boxHeight = 80;
+    int boxX = (tft.width() - boxWidth) / 2;
+    int boxY = (tft.height() - boxHeight) / 2;
+
+    // Draw red box with border
+    tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_RED);
+    tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_WHITE);
+
+    // Draw message centered in box
+    tft.setTextColor(TFT_WHITE, TFT_RED);
+    tft.setTextSize(2);
+    tft.setTextDatum(MC_DATUM);
+    tft.drawString("STOP button pressed", boxX + boxWidth / 2, boxY + boxHeight / 2);
+
+    setCS(TOUCH);
 }
