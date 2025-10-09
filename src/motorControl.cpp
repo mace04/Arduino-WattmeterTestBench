@@ -3,20 +3,6 @@
 // Global instance of MotorControl
 extern MotorControl motorControl;
 
-// Interrupt Service Routine (ISR) for throttle cut pin
-void IRAM_ATTR throttleCutISR() {
-    motorControl.setThrottle(0);       // Set throttle to 0
-    motorControl.setThrottleCut(true); // Set throttleCut to true
-    motorControl.setRunning(false);    // Set running to false
-}
-
-// Interrupt Service Routine (ISR) for throttle control pin
-void IRAM_ATTR throttleISR() {
-    if (!motorControl.getThrottleCut() && motorControl.getRunningMode() == MotorControl::MANUAL) {
-        motorControl.setThrottle();
-        motorControl.setRunning(true); // Set running to true
-    }
-}
 
 MotorControl::MotorControl() {
     throttleCut = false; // Initialize throttle cut to false
@@ -37,12 +23,6 @@ void MotorControl::init(Settings& settings){
     // Configure PWM for ESC output
     ledcSetup(0, 50, 8); // Channel 0, 50 Hz frequency, 8-bit resolution
     ledcAttachPin(ESC_OUTPUT_PIN, 0); // Attach ESC output pin to channel 0
-
-    // Attach interrupt to THROTTLE_CONTROL_PIN
-    attachInterrupt(THROTTLE_CONTROL_PIN, throttleISR, CHANGE);
-
-    // Attach interrupt to THROTTLE_CUT_PIN
-    attachInterrupt(THROTTLE_CUT_PIN, throttleCutISR, FALLING); // Trigger on falling edge
 }
 
 void MotorControl::reset() {
@@ -71,12 +51,12 @@ void MotorControl::reset() {
 
 bool MotorControl::startManual(String& error) {
     if (throttleCut) {
-        error = "Cannot start motor: Throttle cut is enabled.";
+        error = "Cannot start motor. Throttle cut is enabled.";
         return false;
     }
 
     if (isThrottle()) {
-        error = "Cannot start motor: Throttle is not 0.";
+        error = "Cannot start motor. Throttle is not 0.";
         return false;
     }
 
@@ -99,7 +79,7 @@ bool MotorControl::startManual(String& error) {
 
 bool MotorControl::startAuto(String& error) {
     if (throttleCut) {
-        error = "Cannot start motor: Throttle cut is enabled.";
+        error = "Cannot start motor. Throttle cut is enabled.";
         return false;
     }
     // Set running mode to MANUAL
@@ -124,6 +104,24 @@ bool MotorControl::startAuto(String& error) {
     Serial.println("Motor started in AUTO mode.");
 
     return true;
+}
+
+void MotorControl::handleControls(){
+    if(digitalRead(THROTTLE_CUT_PIN) == LOW){
+        motorControl.setThrottle(0);       // Set throttle to 0
+        motorControl.setThrottleCut(true); // Set throttleCut to true
+        motorControl.setRunning(false);    // Set running to false    
+        Serial.println("Throttle cut activated! Motor stopped.");
+    }
+    static int lastThrottle = 0;
+    if (!motorControl.getThrottleCut() && motorControl.getRunningMode() == MotorControl::MANUAL) {
+        motorControl.setThrottle();
+        // motorControl.setRunning(true); // Set running to true
+        if (lastThrottle != motorControl.getThrottlePercent() && motorControl.isRunning()) {
+            lastThrottle = motorControl.getThrottlePercent();
+            Serial.println("Throttle change: " + String(lastThrottle) + "%");
+        }
+    }
 }
 
 void MotorControl::handleAutoTest() {

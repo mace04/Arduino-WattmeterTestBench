@@ -22,6 +22,7 @@ public:
     void reset(); // Method to reset the motor control state
     bool startManual(String& error); // Method to start the motor in manual mode
     bool startAuto(String& error);
+    void handleControls(); // Method to handle manual controls
     void handleAutoTest(); // Method to handle auto test
     void stop(); // Method to stop the motor
     

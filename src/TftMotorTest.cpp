@@ -1,13 +1,5 @@
 #include "TftMotorTest.h"
 
-// Timer interrupt handler
-void IRAM_ATTR TftMotorTest::onTimer(void* arg) {
-    setCS(PANEL); // Set CS for TFT panel
-    TftMotorTest* instance = static_cast<TftMotorTest*>(arg);
-    instance->updatePanelValues(); // Call the updatePanels method
-    setCS(TOUCH); // Set CS for touch controller
-}
-
 TftMotorTest::TftMotorTest(TFT_eSPI& tft, XPT2046_Touchscreen& ts, void (*screenChangeCallback)(TftScreenMode))
     : tft(tft), ts(ts), screenChangeCallback(screenChangeCallback),
       startButton{"Start", 10, 5, 80, 30, ENABLE},
@@ -177,11 +169,18 @@ void TftMotorTest::updatePanelValue(int panelIndex, const char* value) {
 }
 
 void TftMotorTest::handleTouch() {
-    static bool errorBoxDisplayed;
+    static unsigned long lastPanelUpdate = 0;
+
+    // Update panel values once every second
+    unsigned long now = millis();
+    if (now - lastPanelUpdate >= 1000 && currentScreenState == TESTING) {
+        updatePanelValues();
+        lastPanelUpdate = now;
+    }
 
     // Check for throttle cut during a running test
     if (currentScreenState == TESTING && motorControl.getThrottleCut()) {
-        showStopPressedBox();
+        showErrorBox("STOP button pressed. The motor is stopped and the test aborted");
         motorControl.stop(); // Optionally stop the motor
         drawThrottleIndicator(0); // Reset throttle indicator if motor is not running
         setButtonState(stopButton, DISABLE);
@@ -195,7 +194,7 @@ void TftMotorTest::handleTouch() {
     //     drawThrottleIndicator(0); // Reset throttle indicator if motor is not running
     //     onStopPressed();
     // }
-    if (digitalRead(TOUCH_IRQ) == LOW) {
+    if (digitalRead(TOUCH_IRQ) == LOW && ts.touched()) {
         unsigned long currentTime = millis();
         if (currentTime - lastTouchTime < debounceDelay) {
             setCS(TOUCH); // Set CS for touch controller
@@ -214,11 +213,11 @@ void TftMotorTest::handleTouch() {
                 y >= exitButton.y && y <= exitButton.y + exitButton.height) {
             if (screenChangeCallback) {
                 Serial.println("Exit button pressed, changing screen to MAIN_MENU");
-                if (updateTimer) {
-                    esp_timer_stop(updateTimer);
-                    esp_timer_delete(updateTimer);
-                    updateTimer = nullptr;
-                }
+                motorControl.stop(); // Ensure motor is stopped when exiting
+                motorControl.reset(); // Reset motor control state
+                setButtonState(stopButton, DISABLE);
+                setButtonState(startButton, ENABLE);
+                currentScreenState = IDLE; // Reset screen state
                 screenChangeCallback(MAIN_MENU);
             }
         }
@@ -251,23 +250,13 @@ void TftMotorTest::handleTouch() {
                 init(testType); // Re-initialize the screen
             }
         }
-        setCS(TOUCH); // Set CS for touch controller
     }
+    setCS(TOUCH); // Set CS for touch controller
 }
 
 void TftMotorTest::onStartPressed() {
     setButtonState(startButton, DISABLE);
     setButtonState(stopButton, ENABLE);
-    // Add custom logic for Start button
-    // Create and start the timer
-    const esp_timer_create_args_t timerArgs = {
-        .callback = &TftMotorTest::onTimer,
-        .arg = this,
-        .dispatch_method = ESP_TIMER_TASK,
-        .name = "updateTimer"
-    };
-    esp_timer_create(&timerArgs, &updateTimer);
-    esp_timer_start_periodic(updateTimer, 500000); // 1 second (1,000,000 microseconds)
 
     String error;
     if(testType == MANUAL) {
@@ -276,7 +265,15 @@ void TftMotorTest::onStartPressed() {
     } else if(testType == AUTO) {
         // Set the motor to auto mode
         motorControl.startAuto(error); // Set the motor to auto mode (replace with actual motor control logic)
-    }   
+    } 
+    if (!error.isEmpty()){
+        showErrorBox(error);
+        setButtonState(stopButton, DISABLE);
+        setButtonState(startButton, ENABLE);
+        currentScreenState = IDLE;
+        errorBoxDisplayed = true;
+        return;
+    }  
     currentScreenState = TESTING; // Update the screen state to TESTING
 
     Serial.println("Start button pressed. Timer started.");
@@ -285,13 +282,6 @@ void TftMotorTest::onStartPressed() {
 void TftMotorTest::onStopPressed() {
     setButtonState(stopButton, DISABLE);
     setButtonState(startButton, ENABLE);
-    // Add custom logic for Stop button
-    // Stop and delete the timer
-    if (updateTimer) {
-        esp_timer_stop(updateTimer);
-        esp_timer_delete(updateTimer);
-        updateTimer = nullptr;
-    }
 
     motorControl.stop(); // Stop the motor (replace with actual motor control logic)
     currentScreenState = IDLE; // Update the screen state to IDLE
@@ -301,13 +291,6 @@ void TftMotorTest::onStopPressed() {
 void TftMotorTest::onResetPressed() {
     setButtonState(startButton, ENABLE);
     setButtonState(stopButton, DISABLE);
-    // Add custom logic for Reset button
-    // Stop and delete the timer
-    if (updateTimer) {
-        esp_timer_stop(updateTimer);
-        esp_timer_delete(updateTimer);
-        updateTimer = nullptr;
-    }
 
     motorControl.reset(); // Reset the motor (replace with actual motor control logic)
     currentScreenState = IDLE; // Update the screen state to IDLE
@@ -318,22 +301,67 @@ void TftMotorTest::onResetPressed() {
     Serial.println("Stop button pressed. Timer stopped.");
 }
 
-void TftMotorTest::showStopPressedBox() {
+// void TftMotorTest::showStopPressedBox() {
+//     setCS(PANEL);
+//     int boxWidth = tft.width() / 2;
+//     int boxHeight = 80;
+//     int boxX = (tft.width() - boxWidth) / 2;
+//     int boxY = (tft.height() - boxHeight) / 2;
+
+//     // Draw red box with border
+//     tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_RED);
+//     tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_WHITE);
+
+//     // Draw message centered in box
+//     tft.setTextColor(TFT_WHITE, TFT_RED);
+//     tft.setTextSize(2);
+//     tft.setTextDatum(MC_DATUM);
+//     tft.drawString("STOP button pressed", boxX + boxWidth / 2, boxY + boxHeight / 2);
+
+//     setCS(TOUCH);
+// }
+
+void TftMotorTest::showErrorBox(const String& error) {
     setCS(PANEL);
-    int boxWidth = tft.width() / 2;
-    int boxHeight = 80;
+
+    // Split error string into lines of max 28 chars (adjust as needed)
+    std::vector<String> lines;
+    int maxLineLen = 28;
+    int start = 0;
+    while (start < error.length()) {
+        int len = min((unsigned int) maxLineLen, error.length() - start);
+        // Try to break at space if possible
+        int end = start + len;
+        if (end < error.length() && error[end] != ' ') {
+            int spacePos = error.lastIndexOf(' ', end);
+            if (spacePos > start) {
+                len = spacePos - start;
+            }
+        }
+        lines.push_back(error.substring(start, start + len));
+        start += len;
+        while (start < error.length() && error[start] == ' ') start++; // Skip spaces
+    }
+
+    int lineHeight = 28;
+    int boxWidth = tft.width() * 2 / 3;
+    int boxHeight = lineHeight * lines.size() + 40;
     int boxX = (tft.width() - boxWidth) / 2;
     int boxY = (tft.height() - boxHeight) / 2;
 
     // Draw red box with border
-    tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_RED);
-    tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_WHITE);
+    this->tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_RED);
+    this->tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_WHITE);
 
-    // Draw message centered in box
-    tft.setTextColor(TFT_WHITE, TFT_RED);
-    tft.setTextSize(2);
-    tft.setTextDatum(MC_DATUM);
-    tft.drawString("STOP button pressed", boxX + boxWidth / 2, boxY + boxHeight / 2);
+    // Draw each line centered in box
+    this->tft.setTextColor(TFT_WHITE, TFT_RED);
+    this->tft.setTextSize(2);
+    this->tft.setTextDatum(MC_DATUM);
+    int textY = boxY + 20 + lineHeight / 2;
+    for (const auto& line : lines) {
+        this->tft.drawString(line, boxX + boxWidth / 2, textY);
+        textY += lineHeight;
+    }
 
     setCS(TOUCH);
 }

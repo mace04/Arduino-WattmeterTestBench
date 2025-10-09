@@ -1,9 +1,12 @@
 #ifndef TFT_MOTOR_TEST_H
 #define TFT_MOTOR_TEST_H
 
+#include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <XPT2046_Touchscreen.h>
 #include <esp_timer.h> // Include ESP32 timer library
+#include <vector>
+#include <algorithm>
 #include "tft_config.h"
 #include "motorControl.h"
 
@@ -29,6 +32,7 @@ private:
     TFT_eSPI& tft;
     XPT2046_Touchscreen& ts;
     TestType testType;
+    bool errorBoxDisplayed = false; // Flag to indicate if an error box is currently displayed
     void (*screenChangeCallback)(TftScreenMode);
 
     static const int debounceDelay = 200; // Debounce delay in milliseconds
@@ -82,7 +86,7 @@ private:
     void onStartPressed();
     void onStopPressed();
     void onResetPressed();
-    void showStopPressedBox();
+    void showErrorBox(const String& error);
 };
 
 #endif // TFT_MOTOR_TEST_H

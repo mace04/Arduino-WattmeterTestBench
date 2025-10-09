@@ -52,7 +52,7 @@ void screenChangeCallback(TftScreenMode screenMode) {
 void core0Task(void *parameter) {
     while (true) {
         handleWebServer(); // Handle web server requests
-
+        motorControl.handleControls(); // Handle manual controls
         if (motorControl.isRunning()) {
             if (motorControl.getRunningMode() == MotorControl::RunningMode::AUTO) {
                 motorControl.handleAutoTest(); // Handle auto test
@@ -65,14 +65,13 @@ void core0Task(void *parameter) {
             tftMotorTest.Time = getElapsedTime(); // Get elapsed time
             tftMotorTest.ThrottlePercent = motorControl.getThrottlePercent(); // Get throttle percentage
        } else{
-                tftMotorTest.Voltage = readVoltageSensor(); // Read voltage sensor
-                tftMotorTest.Current = readCurrentSensor(); // Read current sensor
-                tftMotorTest.Thrust = readWeightSensor(); // Read thrust sensor
-                tftMotorTest.Power = 0;
-                tftMotorTest.Consumption = 0;
-                tftMotorTest.Time = getElapsedTime(); // Get elapsed time
-                tftMotorTest.ThrottlePercent = motorControl.getThrottlePercent(); // Get throttle percentage
-                delay(100); // Delay to prevent task starvation
+            tftMotorTest.Voltage = readVoltageSensor(); // Read voltage sensor
+            tftMotorTest.Current = readCurrentSensor(); // Read current sensor
+            tftMotorTest.Thrust = readWeightSensor(); // Read thrust sensor
+            tftMotorTest.Power = 0;
+            tftMotorTest.Consumption = 0;
+            tftMotorTest.Time = getElapsedTime(); // Get elapsed time
+            tftMotorTest.ThrottlePercent = motorControl.getThrottlePercent(); // Get throttle percentage
         }
         delay(10); // Delay to prevent task starvation
     }
