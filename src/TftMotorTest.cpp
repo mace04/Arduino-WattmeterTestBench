@@ -344,7 +344,7 @@ void TftMotorTest::showErrorBox(const String& error) {
     }
 
     int lineHeight = 28;
-    int boxWidth = tft.width() * 2 / 3;
+    int boxWidth = tft.width() * 2 / 3 + 30;
     int boxHeight = lineHeight * lines.size() + 40;
     int boxX = (tft.width() - boxWidth) / 2;
     int boxY = (tft.height() - boxHeight) / 2;
