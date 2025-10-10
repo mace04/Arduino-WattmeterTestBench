@@ -22,7 +22,7 @@ void Settings::loadSettings() {
     }
     readFromSPIFFS();
 }
-
+  
 void Settings::saveSettings() {
     writeToSPIFFS();
     readFromSPIFFS(); // Read back to verify
@@ -44,7 +44,7 @@ void Settings::readFromSPIFFS() {
     std::unique_ptr<char[]> buf(new char[size]);
     file.readBytes(buf.get(), size);
 
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     auto error = deserializeJson(doc, buf.get());
     if (error) {
         Serial.println("Failed to parse settings file");
@@ -67,7 +67,7 @@ void Settings::readFromSPIFFS() {
 }
 
 void Settings::writeToSPIFFS() {
-    DynamicJsonDocument doc(1024);
+    JsonDocument doc;
     doc["ssid"] = ssid;
     doc["password"] = password;
     doc["voltsPerPointVoltage"] = voltsPerPointVoltage;
