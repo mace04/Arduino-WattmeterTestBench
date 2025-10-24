@@ -6,9 +6,10 @@
 #include <XPT2046_Touchscreen.h>
 #include <User_Setup.h> // Include the User_Setup.h file for TFT_eSPI
 
-#define ILI9488_DRIVER      // Select the correct display driver
+#define ILI9488_DRIVER      // Select the correct display driver. Change this in TFT_eSPI/User_Setup.h
 
 // ESP32 SPI Pin Configuration
+// Change these in TFT_eSPI/User/Setups/Setup21_ILI9488.h as well
 #define TFT_MISO 19
 #define TFT_MOSI 23
 #define TFT_SCLK 18
