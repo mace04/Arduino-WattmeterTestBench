@@ -2,13 +2,16 @@
 #define MOTORCONTROL_H
 
 #include <Arduino.h>
+#include <ESP32Servo.h>
 #include "sensors.h"
 #include "Settings.h"
 
 // Pin definitions
 #define THROTTLE_CONTROL_PIN 36 // Pin for throttle control input
-#define ESC_OUTPUT_PIN 3 // Pin for ESC output
+#define ESC_OUTPUT_PIN 21 // Pin for ESC output
 #define THROTTLE_CUT_PIN 22 // Pin for throttle cut switch
+#define MIN_THROTTLE 1000 // Minimum throttle value for ESC
+#define MAX_THROTTLE 2000 // Maximum throttle value for ESC
 
 class MotorControl {
 public:
@@ -53,6 +56,7 @@ private:
     int stateCurrentThrottle; // Current throttle percentage
     int warmDuration; // Duration for throttle ramp-up/down (in seconds)
     int phaseDuration; // Duration for holding throttle levels (in seconds)
+    Servo escControl; // Servo object for ESC control
 
 
     bool isThrottle(); // Method to determine if the throttle pin is at 0 or not

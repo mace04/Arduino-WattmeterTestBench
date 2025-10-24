@@ -9,20 +9,23 @@ MotorControl::MotorControl() {
     autoTestEnabled = false; // Initialize auto test enabled to false
     running = false; // Initialize running to false
     runningMode = MANUAL; // Default running mode is MANUAL
+    ESP32PWM::allocateTimer(0);
+    ESP32PWM::allocateTimer(1);
+    ESP32PWM::allocateTimer(2);
+    ESP32PWM::allocateTimer(3);
 }
 
 void MotorControl::init(Settings& settings){
     pinMode(THROTTLE_CONTROL_PIN, INPUT);
     pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
-    pinMode(ESC_OUTPUT_PIN, OUTPUT);
 
     warmDuration = settings.getTestWarmDuration(); // Duration for throttle ramp-up/down (in seconds)
     phaseDuration = settings.getTestPhaseDuration(); // Duration for holding throttle levels (in seconds)
 
-
-    // Configure PWM for ESC output
-    ledcSetup(0, 50, 8); // Channel 0, 50 Hz frequency, 8-bit resolution
-    ledcAttachPin(ESC_OUTPUT_PIN, 0); // Attach ESC output pin to channel 0
+    escControl.setPeriodHertz(50);    // standard 50 hz servo
+    escControl.attach(ESC_OUTPUT_PIN, MIN_THROTTLE, MAX_THROTTLE); // attaches the servo on pin 18 to the servo object
+    escControl.writeMicroseconds(MIN_THROTTLE); // Set initial ESC signal to minimum throttle
+    Serial.println("ESC Microseconds: " + String(escControl.readMicroseconds())); // Debugging output
 }
 
 void MotorControl::reset() {
@@ -36,7 +39,7 @@ void MotorControl::reset() {
     setRunning(false);
 
     // Reset ESC output
-    ledcWrite(0, 0); // Assuming channel 0 for PWM
+    escControl.writeMicroseconds(MIN_THROTTLE); // Set initial ESC signal to minimum throttle
 
     if (getRunningMode() == AUTO) {
         state = 0; // State machine to track the current phase
@@ -108,17 +111,17 @@ bool MotorControl::startAuto(String& error) {
 
 void MotorControl::handleControls(){
     if(digitalRead(THROTTLE_CUT_PIN) == LOW){
-        motorControl.setThrottle(0);       // Set throttle to 0
-        motorControl.setThrottleCut(true); // Set throttleCut to true
-        motorControl.setRunning(false);    // Set running to false    
+        setThrottle(0);       // Set throttle to 0
+        setThrottleCut(true); // Set throttleCut to true
+        setRunning(false);    // Set running to false    
         Serial.println("Throttle cut activated! Motor stopped.");
     }
     static int lastThrottle = 0;
-    if (!motorControl.getThrottleCut() && motorControl.getRunningMode() == MotorControl::MANUAL) {
-        motorControl.setThrottle();
+    if (!getThrottleCut() && getRunningMode() == MotorControl::MANUAL) {
+        setThrottle();
         // motorControl.setRunning(true); // Set running to true
-        if (lastThrottle != motorControl.getThrottlePercent() && motorControl.isRunning()) {
-            lastThrottle = motorControl.getThrottlePercent();
+        if (lastThrottle != getThrottlePercent() && isRunning()) {
+            lastThrottle = getThrottlePercent();
             Serial.println("Throttle change: " + String(lastThrottle) + "%");
         }
     }
@@ -129,6 +132,7 @@ void MotorControl::handleAutoTest() {
 
     switch (state) {
         case 0: // Ramp up from 0% to 50%
+            Serial.println("Auto Test State 0: Ramping up to 50%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle < 50) {
                 int elapsed = currentTime - stateStartTime;
@@ -143,6 +147,7 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 1: // Hold at 50%
+            Serial.println("Auto Test State 1: Holding at 50%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (currentTime - stateStartTime >= phaseDuration * 1000) {
                 stateStartTime = 0; // Reset start time
@@ -151,6 +156,7 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 2: // Ramp up from 50% to 100%
+            Serial.println("Auto Test State 2: Ramping up to 100%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle < 100) {
                 int elapsed = currentTime - stateStartTime;
@@ -165,6 +171,7 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 3: // Hold at 100%
+            Serial.println("Auto Test State 3: Holding at 100%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (currentTime - stateStartTime >= phaseDuration * 1000) {
                 stateStartTime = 0; // Reset start time
@@ -173,6 +180,7 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 4: // Ramp down from 100% to 0%
+            Serial.println("Auto Test State 4: Ramping down to 0%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle > 0) {
                 int elapsed = currentTime - stateStartTime;
@@ -207,7 +215,7 @@ void MotorControl::stop() {
     }
 
     // Reset ESC output
-    ledcWrite(0, 0); // Assuming channel 0 for PWM
+    escControl.writeMicroseconds(MIN_THROTTLE); // Set initial ESC signal to minimum throttle
 
     Serial.println("Motor has been stopped.");
 }
@@ -231,39 +239,32 @@ int MotorControl::setThrottle() {
 
     if (throttleCut) {
         // If throttle cut is set, set ESC to no throttle
-        ledcWrite(0, 0); // Assuming channel 0 for PWM
+        escControl.writeMicroseconds(MIN_THROTTLE); // Set ESC to minimum throttle
         setRunning(false); // Stop running
     } else if (isRunning() && getRunningMode() == MANUAL) {
         // Set ESC output based on throttle percentage
-        int pwmValue = map(throttlePercent, 0, 100, 0, 255); // Map to PWM range
-        ledcWrite(0, pwmValue); // Assuming channel 0 for PWM
+        int pwmValue = map(throttleValue, 0, 4095, MIN_THROTTLE, MAX_THROTTLE); // Map to PWM range
+        escControl.writeMicroseconds(pwmValue); 
         return throttlePercent;
     }
     return 0; // Return 0 if not running or throttle cut is enabled
 }
 
 int MotorControl::getThrottlePercent() {
-    int throttlePercent;
-    if (getRunningMode() == AUTO){
-        throttlePercent = map(ledcRead(0), 0, 255, 0, 100);
-    }
-    else{
-        int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read throttle control value
-        throttlePercent = map(throttleValue, 0, 4095, 0, 100); // Convert to percentage
-    }
-    return throttlePercent; // Return the throttle percentage
+    // Serial.println("ESC Microseconds: " + String(escControl.readMicroseconds())); // Debugging output
+    return map(escControl.readMicroseconds(), MIN_THROTTLE, MAX_THROTTLE, 0, 100); // Return the throttle percentage
 }
 
 int MotorControl::setThrottle(int percent) {
 
     if (throttleCut) {
         // If throttle cut is set, set ESC to no throttle
-        ledcWrite(0, 0); // Assuming channel 0 for PWM
+        escControl.writeMicroseconds(MIN_THROTTLE); // Set ESC to minimum throttle
         setRunning(false); // Stop running
     } else if (isRunning() && getRunningMode() == AUTO) {
         // Set ESC output based on throttle percentage
-        int pwmValue = map(percent, 0, 100, 0, 255); // Map to PWM range
-        ledcWrite(0, pwmValue); // Assuming channel 0 for PWM
+        int pwmValue = map(percent, 0, 100, MIN_THROTTLE, MAX_THROTTLE); // Map to PWM range
+        escControl.writeMicroseconds(pwmValue); 
         return percent;
     }
     return 0; // Return 0 if not running or throttle cut is enabled
