@@ -8,6 +8,7 @@
 #include "TftMainMenu.h"
 #include "TftAbout.h"
 #include "TftMotorTest.h"
+#include "TftCalibrate.h"
 #include <WiFi.h>
 
 void screenChangeCallback(TftScreenMode screenMode);
@@ -24,6 +25,9 @@ float current = 0.0; // Variable to store current reading
 int thrust = 0; // Variable to store thrust reading
 int power=0; // Variable to store power reading
 float mAh = 0.0; // Variable to store accumulated mAh
+bool enterCalibrationMode = false; // Flag to enter calibration mode in Setup
+bool calibrateEsc = false; // Flag to calibrate ESC in Setup
+
 
 // Task handles
 TaskHandle_t core0TaskHandle = NULL;
@@ -32,6 +36,7 @@ TaskHandle_t core1TaskHandle = NULL;
 TftMainMenu tftMainMenu(tft, ts, screenChangeCallback);
 TftAbout tftAbout(tft, ts, screenChangeCallback);
 TftMotorTest tftMotorTest(tft, ts, screenChangeCallback);
+TftCalibrate tftCalibrate(tft, ts);
 
 // Callback function to handle screen changes
 void screenChangeCallback(TftScreenMode screenMode) {
@@ -78,7 +83,7 @@ void core0Task(void *parameter) {
 }
 
 // Task running on Core 1
-void core1Task(void *parameter) {
+void NormalModeTask(void *parameter) {
     while (true) {
         if (isCSActive(TOUCH)) {
             if (currentScreen == MAIN_MENU) {
@@ -93,8 +98,37 @@ void core1Task(void *parameter) {
     }
 }
 
+void CalibrationModeTask(void *parameter) {
+    while (true) {
+        tftCalibrate.handle();
+        
+        delay(10); // Delay to prevent task starvation
+    }
+}
+
+void IRAM_ATTR setCalibrationModeFlag() {
+    static bool enterCalibrationModeOnce = false;
+    if(enterCalibrationModeOnce) return;
+    enterCalibrationMode = true;
+    tft.println("Entering Calibration Mode");
+    enterCalibrationModeOnce = true;
+}
+
+void IRAM_ATTR setCalibrateEscFlag() {
+    static bool enterCalibrateEscOnce = false;
+    if(enterCalibrateEscOnce) return;
+    calibrateEsc = true;
+    tft.println("Calibrating ESC");
+    enterCalibrateEscOnce = true;
+}
+
+
 void setup() {
     // Initialize serial communication
+    pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
+    attachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN), setCalibrationModeFlag, FALLING);
+    delay(20);
+
     Serial.begin(115200);
     Serial.printf("Flash size: %i MB\n", ESP.getFlashChipSize() / (1024 * 1024));
     Serial.println();
@@ -120,15 +154,17 @@ void setup() {
     tft.fillScreen(TFT_BLACK);
     // Test display colors
     tft.fillScreen(TFT_RED);
-    delay(1000);
+    delay(500);
     tft.fillScreen(TFT_GREEN);
-    delay(1000);
+    delay(500);
     tft.fillScreen(TFT_BLUE);
-    delay(1000);
+    delay(500);
     tft.setTextSize(2);
     tft.setTextColor(TFT_WHITE, TFT_BLUE);
     Serial.println("TFT Device Initialised");
-
+    if(enterCalibrationMode) {
+        tft.println("Entering Calibration Mode");
+    } 
     ts.begin();
     tft.println("Touch Device Initialised");
     Serial.println("Touch Device Initialised");
@@ -157,13 +193,29 @@ void setup() {
     Serial.println("Web Server Initialised");
 
     Serial.println("Setup complete. Tasks started on both cores.");
-    delay(5000);
-    screenChangeCallback(MAIN_MENU); 
+    delay(2000);
+
+    detachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN));
+
+    if(enterCalibrationMode) {
+        tft.println("");
+        tft.println("");
+        tft.println("Calibration Mode");
+        attachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN), setCalibrateEscFlag, FALLING);
+        delay(20);
+        tft.println("Press STOP to calibrate the ESC");
+        delay(5000);
+        detachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN));
+        tftCalibrate.init(calibrateEsc);
+    }
+    else {
+        screenChangeCallback(MAIN_MENU);
+    }
 
     // Create tasks for each core
     xTaskCreatePinnedToCore(
         core0Task,          // Task function
-        "Core0Task",        // Name of the task
+        "WebServicesAndSensors",        // Name of the task
         10000,              // Stack size (in bytes)
         NULL,               // Task input parameter
         1,                  // Priority of the task
@@ -171,15 +223,28 @@ void setup() {
         0                   // Core to run the task on (Core 0)
     );
 
-    xTaskCreatePinnedToCore(
-        core1Task,          // Task function
-        "Core1Task",        // Name of the task
-        10000,              // Stack size (in bytes)
-        NULL,               // Task input parameter
-        1,                  // Priority of the task
-        &core1TaskHandle,   // Task handle
-        1                   // Core to run the task on (Core 1)
-    );
+    if(enterCalibrationMode) {
+        xTaskCreatePinnedToCore(
+            CalibrationModeTask,          // Task function
+            "CalibrationMode",        // Name of the task
+            10000,              // Stack size (in bytes)
+            NULL,               // Task input parameter
+            1,                  // Priority of the task
+            &core1TaskHandle,   // Task handle
+            1                   // Core to run the task on (Core 1)
+        );
+    }
+    else {
+        xTaskCreatePinnedToCore(
+            NormalModeTask,          // Task function
+            "NormalMode",        // Name of the task
+            10000,              // Stack size (in bytes)
+            NULL,               // Task input parameter
+            1,                  // Priority of the task
+            &core1TaskHandle,   // Task handle
+            1                   // Core to run the task on (Core 1)
+        );
+    }
 }
 
 void loop() {
