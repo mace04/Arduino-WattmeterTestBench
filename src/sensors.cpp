@@ -40,7 +40,7 @@ void initSensors() {
 // Function to read and smooth voltage sensor readings
 float readVoltageSensor() {
     // int rawADC = analogRead(VOLTAGE_SENSOR_PIN);
-    float voltage = (analogRead(VOLTAGE_SENSOR_PIN) * settings.getVoltsPerPointVoltage()) + settings.getVoltageOffset(); // Convert ADC value to voltage
+    float voltage = (analogRead(VOLTAGE_SENSOR_PIN) * settings.getVoltsPerPointVoltage() / 1000.00) + (settings.getVoltageOffset() / 1000.00); // Convert ADC value to voltage
 
     // Calculate adjusted voltage using voltsPerPointVoltage and voltageOffset from settings
     // voltage = (voltage / settings.getVoltsPerPointVoltage()) + settings.getVoltageOffset();
@@ -59,7 +59,7 @@ float readVoltageSensor() {
 // Function to read and smooth current sensor readings
 float readCurrentSensor() {
     // int rawADC = analogRead(CURRENT_SENSOR_PIN);
-    float current = (analogRead(CURRENT_SENSOR_PIN) * settings.getVoltsPerPointCurrent()) + settings.getCurrentOffset(); // Convert ADC value to voltage
+    float current = (analogRead(CURRENT_SENSOR_PIN) * settings.getVoltsPerPointCurrent() / 1000.00) + (settings.getCurrentOffset() / 1000.00); // Convert ADC value to voltage
 
     // Calculate current using voltsPerPointCurrent and currentOffset from settings
     // float current = (voltage / settings.getVoltsPerPointCurrent()) + settings.getCurrentOffset();

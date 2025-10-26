@@ -51,12 +51,12 @@
         </div>
         <div class="form-container">
             <div class="form-group">
-                <label for="voltsPerPointVoltage">Volts Per Point (Voltage):</label>
-                <input type="number" id="voltsPerPointVoltage" name="voltsPerPointVoltage" value="{{VOLTS_PER_POINT_VOLTAGE}}" step="0.00001" placeholder="0.000000">
+                <label for="voltsPerPointVoltage">Voltage Scale(mV/p):</label>
+                <input type="number" id="voltsPerPointVoltage" name="voltsPerPointVoltage" value="{{VOLTS_PER_POINT_VOLTAGE}}" step="0.0001" placeholder="0.0000">
             </div>
             <div class="form-group">
-                <label for="voltageOffset">Voltage Offset:</label>
-                <input type="number" id="voltageOffset" name="voltageOffset" value="{{VOLTAGE_OFFSET}}" step="0.00001">
+                <label for="voltageOffset">Voltage Offset(mv/p):</label>
+                <input type="number" id="voltageOffset" name="voltageOffset" value="{{VOLTAGE_OFFSET}}" step="0.0001" placeholder="0.0000">
             </div>
         </div>
 
@@ -65,12 +65,12 @@
         </div>
         <div class="form-container">
             <div class="form-group">
-                <label for="voltsPerPointCurrent">Amps Per Point:</label>
-                <input type="number" id="voltsPerPointCurrent" name="voltsPerPointCurrent" value="{{VOLTS_PER_POINT_CURRENT}}" step="0.00001"  placeholder="0.000000">
+                <label for="voltsPerPointCurrent">Current Scale(mV/p):</label>
+                <input type="number" id="voltsPerPointCurrent" name="voltsPerPointCurrent" value="{{VOLTS_PER_POINT_CURRENT}}" step="0.0001"  placeholder="0.0000">
             </div>
             <div class="form-group">
-                <label for="currentOffset">Current Offset:</label>
-                <input type="number" id="currentOffset" name="currentOffset" value="{{CURRENT_OFFSET}}" step="0.00001">
+                <label for="currentOffset">Current Offset(mv/p):</label>
+                <input type="number" id="currentOffset" name="currentOffset" value="{{CURRENT_OFFSET}}" step="0.0001" placeholder="0.0000">
             </div>
             <div class="form-group">
                 <label for="maxCurrent">Max Current:</label>
