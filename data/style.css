@@ -56,6 +56,21 @@ h3 {
     background-color: #0056b3;
 }
 
+.link-button {
+    display: inline-block;
+    width: 80px; /* Fixed width */
+    line-height: 35px; /* Vertically center text */
+    font-size: 12px;
+    background-color: #007bff;
+    width: 100%;
+    color: beige;
+    text-align: center
+}
+
+.link-button:hover {
+    background-color: #0056b3;
+}
+
 form {
     max-width: 600px;
     margin: 0 auto;
