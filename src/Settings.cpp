@@ -8,6 +8,7 @@ Settings::Settings() {
     voltageOffset = 0.00;
     voltsPerPointCurrent = 0.02;
     currentOffset = -2.5;
+    thrustScale = 139.00;
     thrustOffset = 0.00;
     maxCurrent = 100;
     maxThrust = 4900;
@@ -57,6 +58,7 @@ void Settings::readFromSPIFFS() {
     voltageOffset = doc["voltageOffset"] | 0.00;
     voltsPerPointCurrent = doc["voltsPerPointCurrent"] | 0.02;
     currentOffset = doc["currentOffset"] | -2.5;
+    thrustScale = doc["thrustScale"] | 139.00;
     thrustOffset = doc["thrustOffset"] | 0.00;
     maxCurrent = doc["maxCurrent"] | 100;
     maxThrust = doc["maxThrust"] | 4900;
@@ -74,6 +76,7 @@ void Settings::writeToSPIFFS() {
     doc["voltageOffset"] = voltageOffset;
     doc["voltsPerPointCurrent"] = voltsPerPointCurrent;
     doc["currentOffset"] = currentOffset;
+    doc["thrustScale"] = thrustScale;
     doc["thrustOffset"] = thrustOffset;
     doc["maxCurrent"] = maxCurrent;
     doc["maxThrust"] = maxThrust;
@@ -96,6 +99,7 @@ float Settings::getVoltsPerPointVoltage() { return voltsPerPointVoltage; }
 double Settings::getVoltageOffset() { return voltageOffset; }
 float Settings::getVoltsPerPointCurrent() { return voltsPerPointCurrent; }
 double Settings::getCurrentOffset() { return currentOffset; }
+float Settings::getThrustScale() { return thrustScale; }
 double Settings::getThrustOffset() { return thrustOffset; }
 int Settings::getMaxCurrent() { return maxCurrent; }
 int Settings::getMaxThrust() { return maxThrust; }
@@ -109,6 +113,7 @@ void Settings::setVoltsPerPointVoltage(double value) { voltsPerPointVoltage = va
 void Settings::setVoltageOffset(double value) { voltageOffset = value; }
 void Settings::setVoltsPerPointCurrent(double value) { voltsPerPointCurrent = value; }
 void Settings::setCurrentOffset(double value) { currentOffset = value; }
+void Settings::setThrustScale(double value) { thrustOffset = value; }
 void Settings::setThrustOffset(double value) { thrustOffset = value; }
 void Settings::setMaxCurrent(int value) { maxCurrent = value; }
 void Settings::setMaxThrust(int value) { maxThrust = value; }

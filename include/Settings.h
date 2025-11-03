@@ -18,6 +18,7 @@ public:
     double getVoltageOffset();
     float getVoltsPerPointCurrent();
     double getCurrentOffset();
+    float getThrustScale();
     double getThrustOffset();
     int getMaxCurrent();
     int getMaxThrust();
@@ -31,6 +32,7 @@ public:
     void setVoltageOffset(double value);
     void setVoltsPerPointCurrent(double value);
     void setCurrentOffset(double value);
+    void setThrustScale(double value);
     void setThrustOffset(double value);
     void setMaxCurrent(int value);
     void setMaxThrust(int value);
@@ -49,6 +51,7 @@ private:
     double voltageOffset;
     float voltsPerPointCurrent;
     double currentOffset;
+    float thrustScale;
     double thrustOffset;
     int maxCurrent;
     int maxThrust;
