@@ -32,15 +32,31 @@ void initSensors() {
     // Initialize the HX711 weight sensor
     #ifdef HX711_h
     scale.begin(HX711_DT_PIN, HX711_SCK_PIN);
+    scale.set_scale(settings.getThrustScale()); // Set scale from settings
+    scale.set_offset(settings.getThrustOffset());
+    scale.tare(); // Reset the scale to zero
+    #endif
+}
+
+void calibrateWeightSensor() {
+    // It is assumed the initSensors have been called before this function and the scale is initialized    
+    #ifdef HX711_h
     scale.set_scale(); // Set scale to default
+    scale.set_offset();
     scale.tare();      // Reset the scale to zero
     #endif
 }
 
 // Function to read and smooth voltage sensor readings
 float readVoltageSensor() {
-    // int rawADC = analogRead(VOLTAGE_SENSOR_PIN);
-    float voltage = (analogRead(VOLTAGE_SENSOR_PIN) * settings.getVoltsPerPointVoltage() / 1000.00) + (settings.getVoltageOffset() / 1000.00); // Convert ADC value to voltage
+    // float vOut = analogRead(VOLTAGE_SENSOR_PIN) * (3.3 / 4095.0); // Convert ADC value to voltage
+    int analogSum = 0;
+    for (int i = 0; i < 32; i++) {
+        analogSum += analogRead(VOLTAGE_SENSOR_PIN);
+    }
+    int avg = analogSum / 32;    
+    float vOut = avg * (3.3 / 4095.0); // Convert ADC value to voltage
+    float voltage = ((vOut - (settings.getVoltageOffset() / 1000.00)) / (settings.getVoltsPerPointVoltage() / 1000.00)); // Convert ADC value to voltage
 
     // Calculate adjusted voltage using voltsPerPointVoltage and voltageOffset from settings
     // voltage = (voltage / settings.getVoltsPerPointVoltage()) + settings.getVoltageOffset();
@@ -58,11 +74,14 @@ float readVoltageSensor() {
 
 // Function to read and smooth current sensor readings
 float readCurrentSensor() {
-    // int rawADC = analogRead(CURRENT_SENSOR_PIN);
-    float current = (analogRead(CURRENT_SENSOR_PIN) * settings.getVoltsPerPointCurrent() / 1000.00) + (settings.getCurrentOffset() / 1000.00); // Convert ADC value to voltage
-
-    // Calculate current using voltsPerPointCurrent and currentOffset from settings
-    // float current = (voltage / settings.getVoltsPerPointCurrent()) + settings.getCurrentOffset();
+    // float vOut = analogRead(CURRENT_SENSOR_PIN) * (3.3 / 4095.0); // Convert ADC value to voltage
+    int analogSum = 0;
+    for (int i = 0; i < 32; i++) {
+        analogSum += analogRead(VOLTAGE_SENSOR_PIN);
+    }
+    int avg = analogSum / 32;      
+    float vOut = avg * (3.3 / 4095.0); // Convert ADC value to voltage
+    float current = (vOut - (settings.getCurrentOffset() / 1000.00)) / (settings.getVoltsPerPointCurrent() / 1000.00); // Sensitivity = Sensor Sensitivity x Voltage Divider Sensitivity
 
     // Update running average
     currentReadings[currentIndex] = current;

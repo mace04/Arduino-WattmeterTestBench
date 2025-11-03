@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <SD.H>
+#include "soc/rtc.h"
 #include "sensors.h"
 #include "motorControl.h"
 #include "Settings.h"
@@ -9,6 +10,8 @@
 #include "TftAbout.h"
 #include "TftMotorTest.h"
 #include "TftCalibrate.h"
+#include "TftCalibrateScale.h"
+#include "TftMessageBox.h"
 #include <WiFi.h>
 
 void screenChangeCallback(TftScreenMode screenMode);
@@ -26,7 +29,7 @@ int thrust = 0; // Variable to store thrust reading
 int power=0; // Variable to store power reading
 float mAh = 0.0; // Variable to store accumulated mAh
 bool enterCalibrationMode = false; // Flag to enter calibration mode in Setup
-bool calibrateEsc = false; // Flag to calibrate ESC in Setup
+bool calibrateScale = false; // Flag to calibrate ESC in Setup
 
 
 // Task handles
@@ -37,6 +40,7 @@ TftMainMenu tftMainMenu(tft, ts, screenChangeCallback);
 TftAbout tftAbout(tft, ts, screenChangeCallback);
 TftMotorTest tftMotorTest(tft, ts, screenChangeCallback);
 TftCalibrate tftCalibrate(tft, ts);
+TftCalibrateScale tftCalibrateScale(tft, ts);
 
 // Callback function to handle screen changes
 void screenChangeCallback(TftScreenMode screenMode) {
@@ -100,7 +104,11 @@ void NormalModeTask(void *parameter) {
 
 void CalibrationModeTask(void *parameter) {
     while (true) {
-        tftCalibrate.handle();
+        if(calibrateScale && !tftCalibrateScale.calibrationComplete)
+            tftCalibrateScale.handle();
+        else{
+            tftCalibrate.handle();
+        }
         
         delay(10); // Delay to prevent task starvation
     }
@@ -114,21 +122,29 @@ void IRAM_ATTR setCalibrationModeFlag() {
     enterCalibrationModeOnce = true;
 }
 
-void IRAM_ATTR setCalibrateEscFlag() {
-    static bool enterCalibrateEscOnce = false;
-    if(enterCalibrateEscOnce) return;
-    calibrateEsc = true;
-    tft.println("Calibrating ESC");
-    enterCalibrateEscOnce = true;
+void IRAM_ATTR setCalibrateScaleFlag() {
+    static bool enterCalibrateScaleOnce = false;
+    if(enterCalibrateScaleOnce) return;
+    calibrateScale = true;
+    // tft.println("Calibrating Scale");
+    tft.setTextColor(TFT_WHITE, TFT_NAVY);
+    tft.setTextDatum(MC_DATUM);
+    tft.drawString("Calibrating Scale", tft.width() / 2, tft.height() - 20);
+    enterCalibrateScaleOnce = true;
 }
 
 
 void setup() {
-    // Initialize serial communication
+    rtc_cpu_freq_config_t config;
+    rtc_clk_cpu_freq_get_config(&config);
+    rtc_clk_cpu_freq_to_config(RTC_CPU_FREQ_80M, &config);
+    rtc_clk_cpu_freq_set_config_fast(&config);
+
     pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
     attachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN), setCalibrationModeFlag, FALLING);
     delay(20);
 
+    // Initialize serial communication
     Serial.begin(115200);
     Serial.printf("Flash size: %i MB\n", ESP.getFlashChipSize() / (1024 * 1024));
     Serial.println();
@@ -201,12 +217,18 @@ void setup() {
         tft.println("");
         tft.println("");
         tft.println("Calibration Mode");
-        attachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN), setCalibrateEscFlag, FALLING);
+        attachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN), setCalibrateScaleFlag, FALLING);
         delay(20);
-        tft.println("Press STOP to calibrate the ESC");
+        tft.fillScreen(TFT_NAVY);
+        TftMessageBox::info(tft, "Press STOP to calibrate the Weight Sensor");
         delay(5000);
         detachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN));
-        tftCalibrate.init(calibrateEsc);
+        if (calibrateScale){
+            tftCalibrateScale.init(calibrateScale);
+        }
+        else{
+            tftCalibrate.init(calibrateScale);
+        }
     }
     else {
         screenChangeCallback(MAIN_MENU);
