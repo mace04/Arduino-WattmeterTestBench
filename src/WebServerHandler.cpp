@@ -148,6 +148,7 @@ void handleGetSettings(WebServer& server, Settings& settings, bool isSaved) {
     html.replace("{{VOLTAGE_OFFSET}}", String(settings.getVoltageOffset()));
     html.replace("{{VOLTS_PER_POINT_CURRENT}}", String(settings.getVoltsPerPointCurrent(),6));
     html.replace("{{CURRENT_OFFSET}}", String(settings.getCurrentOffset()));
+    html.replace("{{THRUST_SCALE}}", String(settings.getThrustScale()));
     html.replace("{{THRUST_OFFSET}}", String(settings.getThrustOffset()));
     html.replace("{{MAX_CURRENT}}", String(settings.getMaxCurrent()));
     html.replace("{{MAX_THRUST}}", String(settings.getMaxThrust()));
@@ -175,6 +176,7 @@ void handlePostSettings(WebServer& server, Settings& settings) {
         settings.setVoltageOffset(server.arg("voltageOffset").toDouble());
         settings.setVoltsPerPointCurrent(server.arg("voltsPerPointCurrent").toDouble());
         settings.setCurrentOffset(server.arg("currentOffset").toDouble());
+        settings.setThrustScale(server.arg("thrustScale").toDouble());
         settings.setThrustOffset(server.arg("thrustOffset").toDouble());
         settings.setMaxCurrent(server.arg("maxCurrent").toInt());
         settings.setMaxThrust(server.arg("maxThrust").toInt());
