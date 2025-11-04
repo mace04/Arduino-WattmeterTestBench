@@ -9,6 +9,7 @@
 #include <algorithm>
 #include "tft_config.h"
 #include "motorControl.h"
+#include "TftMessageBox.h"
 
 enum TestType { MANUAL, AUTO };
 extern MotorControl motorControl; // Forward declaration of motorControl
@@ -86,7 +87,6 @@ private:
     void onStartPressed();
     void onStopPressed();
     void onResetPressed();
-    void showErrorBox(const String& error);
 };
 
 #endif // TFT_MOTOR_TEST_H

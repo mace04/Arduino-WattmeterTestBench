@@ -180,7 +180,7 @@ void TftMotorTest::handleTouch() {
 
     // Check for throttle cut during a running test
     if (currentScreenState == TESTING && motorControl.getThrottleCut()) {
-        showErrorBox("STOP button pressed. The motor is stopped and the test aborted");
+        TftMessageBox::error(this->tft, "STOP button pressed. The motor is stopped and the test aborted");
         motorControl.stop(); // Optionally stop the motor
         drawThrottleIndicator(0); // Reset throttle indicator if motor is not running
         setButtonState(stopButton, DISABLE);
@@ -267,7 +267,7 @@ void TftMotorTest::onStartPressed() {
         motorControl.startAuto(error); // Set the motor to auto mode (replace with actual motor control logic)
     } 
     if (!error.isEmpty()){
-        showErrorBox(error);
+        TftMessageBox::error(this->tft, error);
         setButtonState(stopButton, DISABLE);
         setButtonState(startButton, ENABLE);
         currentScreenState = IDLE;
@@ -299,69 +299,4 @@ void TftMotorTest::onResetPressed() {
     updatePanelValue(PANEL_CONSUMPTION, "0"); // Reset consumption
     updatePanelValue(PANEL_TIME, "00:00");  // Reset time  
     Serial.println("Stop button pressed. Timer stopped.");
-}
-
-// void TftMotorTest::showStopPressedBox() {
-//     setCS(PANEL);
-//     int boxWidth = tft.width() / 2;
-//     int boxHeight = 80;
-//     int boxX = (tft.width() - boxWidth) / 2;
-//     int boxY = (tft.height() - boxHeight) / 2;
-
-//     // Draw red box with border
-//     tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_RED);
-//     tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_WHITE);
-
-//     // Draw message centered in box
-//     tft.setTextColor(TFT_WHITE, TFT_RED);
-//     tft.setTextSize(2);
-//     tft.setTextDatum(MC_DATUM);
-//     tft.drawString("STOP button pressed", boxX + boxWidth / 2, boxY + boxHeight / 2);
-
-//     setCS(TOUCH);
-// }
-
-void TftMotorTest::showErrorBox(const String& error) {
-    setCS(PANEL);
-
-    // Split error string into lines of max 28 chars (adjust as needed)
-    std::vector<String> lines;
-    int maxLineLen = 28;
-    int start = 0;
-    while (start < error.length()) {
-        int len = min((unsigned int) maxLineLen, error.length() - start);
-        // Try to break at space if possible
-        int end = start + len;
-        if (end < error.length() && error[end] != ' ') {
-            int spacePos = error.lastIndexOf(' ', end);
-            if (spacePos > start) {
-                len = spacePos - start;
-            }
-        }
-        lines.push_back(error.substring(start, start + len));
-        start += len;
-        while (start < error.length() && error[start] == ' ') start++; // Skip spaces
-    }
-
-    int lineHeight = 28;
-    int boxWidth = tft.width() * 2 / 3 + 30;
-    int boxHeight = lineHeight * lines.size() + 40;
-    int boxX = (tft.width() - boxWidth) / 2;
-    int boxY = (tft.height() - boxHeight) / 2;
-
-    // Draw red box with border
-    this->tft.fillRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_RED);
-    this->tft.drawRoundRect(boxX, boxY, boxWidth, boxHeight, 12, TFT_WHITE);
-
-    // Draw each line centered in box
-    this->tft.setTextColor(TFT_WHITE, TFT_RED);
-    this->tft.setTextSize(2);
-    this->tft.setTextDatum(MC_DATUM);
-    int textY = boxY + 20 + lineHeight / 2;
-    for (const auto& line : lines) {
-        this->tft.drawString(line, boxX + boxWidth / 2, textY);
-        textY += lineHeight;
-    }
-
-    setCS(TOUCH);
 }
