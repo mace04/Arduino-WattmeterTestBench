@@ -12,6 +12,7 @@
 #define THROTTLE_CUT_PIN 22 // Pin for throttle cut switch
 #define MIN_THROTTLE 1000 // Minimum throttle value for ESC
 #define MAX_THROTTLE 2000 // Maximum throttle value for ESC
+#define ADC_THROTTLE_SENSOR_CHANNEL ADC1_CHANNEL_0  // e.g., GPIO36
 
 class MotorControl {
 public:

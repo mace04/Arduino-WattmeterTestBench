@@ -16,7 +16,6 @@ MotorControl::MotorControl() {
 }
 
 void MotorControl::init(Settings& settings){
-    pinMode(THROTTLE_CONTROL_PIN, INPUT);
     pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
 
     warmDuration = settings.getTestWarmDuration(); // Duration for throttle ramp-up/down (in seconds)
@@ -221,7 +220,7 @@ void MotorControl::stop() {
 }
 
 bool MotorControl::isThrottle() {
-    int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read the throttle pin value
+    int throttleValue = adc1_get_raw(ADC_THROTTLE_SENSOR_CHANNEL); // Read the throttle pin value
     Serial.println("Throttle pin value: " + String(throttleValue)); // Debugging output
     return throttleValue > 0; // Return true if throttle is not 0, false otherwise
 }
@@ -234,7 +233,7 @@ void MotorControl::setThrottleCut(bool cut) {
 }
 
 int MotorControl::setThrottle() {
-    int throttleValue = analogRead(THROTTLE_CONTROL_PIN); // Read throttle control value
+    int throttleValue = adc1_get_raw(ADC_THROTTLE_SENSOR_CHANNEL); // Read throttle control value
     int throttlePercent = map(throttleValue, 0, 4095, 0, 100); // Convert to percentage
 
     if (throttleCut) {
