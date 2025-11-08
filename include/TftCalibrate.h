@@ -44,12 +44,14 @@ private:
     Panel panelVoltage;
     Panel panelCurrent;
     Panel panelThrust;
-
+    
     TextBox voltsPerPointVoltageBox;
     TextBox voltageOffsetBox;
     TextBox voltsPerPointCurrentBox;
     TextBox currentOffsetBox;
     TextBox thrustOffsetBox;
+    TextBox voltsGPIOBox;
+    TextBox currentGPIOBox;
 
     struct Button {
         const char* label;

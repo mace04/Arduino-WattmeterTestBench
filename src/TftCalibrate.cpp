@@ -3,13 +3,18 @@
 TftCalibrate::TftCalibrate(TFT_eSPI& tft, XPT2046_Touchscreen& ts)
     : tft(tft), ts(ts),
       panelVoltage("Volts", "V", 10, 10, 150, 70, "0.0"),
+      voltsGPIOBox{"IO mV", 170, 45, 90, 30, ""},
+      voltsPerPointVoltageBox{"Scale", 270, 45, 90, 30, ""},
+      voltageOffsetBox{"Offset", 370, 45, 90, 30, ""},
+
       panelCurrent("Current", "A", 10, 90, 150, 70, "0.0"),
+      currentGPIOBox{"IO mV", 170, 125, 90, 30, ""},
+      voltsPerPointCurrentBox{"Scale", 270, 125, 90, 30, ""},
+      currentOffsetBox{"Offset",370, 125, 90, 30, ""},
+
       panelThrust("Thrust", "gr", 10, 170, 150, 70, "0"),
-      voltsPerPointVoltageBox{"Scale", 170, 45, 90, 30, ""},
-      voltageOffsetBox{"Offset", 270, 45, 90, 30, ""},
-      voltsPerPointCurrentBox{"Scale", 170, 125, 90, 30, ""},
-      currentOffsetBox{"Offset",270, 125, 90, 30, ""},
       thrustOffsetBox{"Offset",170, 205, 90, 30, ""},
+
       resetButton{"Restart", tft.height() / 2 - 40, tft.width() - 50, 110, 40}
 {
 }
@@ -45,8 +50,10 @@ void TftCalibrate::init(bool calibrateEsc) {
     currentOffsetBox.value = String(settings.getCurrentOffset(), 2);
     thrustOffsetBox.value = String(settings.getThrustOffset(), 1);
 
+    drawTextBox(voltsGPIOBox);
     drawTextBox(voltsPerPointVoltageBox);
     drawTextBox(voltageOffsetBox);
+    drawTextBox(currentGPIOBox);
     drawTextBox(voltsPerPointCurrentBox);
     drawTextBox(currentOffsetBox);
     drawTextBox(thrustOffsetBox);
@@ -124,8 +131,10 @@ void TftCalibrate::handle() {
         snprintf(panelCurrent.value, sizeof(panelCurrent.value), "%d", readCurrentSensor());
         snprintf(panelThrust.value, sizeof(panelThrust.value), "%d", readWeightSensor());
 
+        voltsGPIOBox.value = String(readVoltageGpio());
         voltsPerPointVoltageBox.value = String(settings.getVoltsPerPointVoltage(), 4);
         voltageOffsetBox.value = String(settings.getVoltageOffset(), 2);
+        currentGPIOBox.value = String(readCurrentGpio());
         voltsPerPointCurrentBox.value = String(settings.getVoltsPerPointCurrent(), 4);
         currentOffsetBox.value = String(settings.getCurrentOffset(), 2);
         thrustOffsetBox.value = String(settings.getThrustOffset(), 1);
@@ -133,8 +142,10 @@ void TftCalibrate::handle() {
         updatePanel(panelVoltage);
         updatePanel(panelCurrent);
         updatePanel(panelThrust);
+        drawTextBox(voltsGPIOBox);
         drawTextBox(voltsPerPointVoltageBox);
         drawTextBox(voltageOffsetBox);
+        drawTextBox(currentGPIOBox);
         drawTextBox(voltsPerPointCurrentBox);
         drawTextBox(currentOffsetBox);
         drawTextBox(thrustOffsetBox);     }
