@@ -20,7 +20,7 @@ TftCalibrate::TftCalibrate(TFT_eSPI& tft, XPT2046_Touchscreen& ts)
 }
 
 void TftCalibrate::init(bool calibrateEsc) {
-    pinMode(THROTTLE_CONTROL_PIN, INPUT);
+    // pinMode(THROTTLE_CONTROL_PIN, INPUT);
 
      ESP32PWM::allocateTimer(0);
      ESP32PWM::allocateTimer(1);
@@ -28,7 +28,6 @@ void TftCalibrate::init(bool calibrateEsc) {
      ESP32PWM::allocateTimer(3);
      servo.setPeriodHertz(50);    // standard 50 hz servo
      servo.attach(ESC_OUTPUT_PIN, 1000, 2000); // attaches the servo on pin 18 to the servo object
-     Serial.println("throttle control pin reading: " + String(analogRead(THROTTLE_CONTROL_PIN)));
      if (calibrateEsc)
      {
         servo.writeMicroseconds(2000); // Set initial ESC signal to maximum throttle
@@ -115,7 +114,7 @@ void TftCalibrate::drawButton(const Button& button) {
 
 void TftCalibrate::handle() {
     static unsigned long lastPanelUpdate = 0;
-    servo.writeMicroseconds(map(analogRead(THROTTLE_CONTROL_PIN), 0, 4095, 1000, 2000));
+    servo.writeMicroseconds(map(adc1_get_raw(ADC_THROTTLE_SENSOR_CHANNEL), 0, 4095, 1000, 2000));
 
     // Update panel values once every second
     unsigned long now = millis();
