@@ -135,10 +135,10 @@ void IRAM_ATTR setCalibrateScaleFlag() {
 
 
 void setup() {
-    rtc_cpu_freq_config_t config;
-    rtc_clk_cpu_freq_get_config(&config);
-    rtc_clk_cpu_freq_to_config(RTC_CPU_FREQ_80M, &config);
-    rtc_clk_cpu_freq_set_config_fast(&config);
+    // rtc_cpu_freq_config_t config;
+    // rtc_clk_cpu_freq_get_config(&config);
+    // rtc_clk_cpu_freq_to_config(RTC_CPU_FREQ_80M, &config);
+    // rtc_clk_cpu_freq_set_config_fast(&config);
 
     pinMode(THROTTLE_CUT_PIN, INPUT_PULLUP); // Configure throttle cut pin with pull-up resistor
     attachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN), setCalibrationModeFlag, FALLING);
@@ -214,6 +214,7 @@ void setup() {
     detachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN));
 
     if(enterCalibrationMode) {
+        #ifdef HX711_h
         tft.println("");
         tft.println("");
         tft.println("Calibration Mode");
@@ -223,6 +224,7 @@ void setup() {
         TftMessageBox::info(tft, "Press STOP to calibrate the Weight Sensor");
         delay(5000);
         detachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN));
+        #endif
         if (calibrateScale){
             tftCalibrateScale.init(calibrateScale);
         }
