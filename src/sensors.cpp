@@ -1,9 +1,10 @@
 #include "sensors.h"
 // #include "HX711.h"
-#include "Settings.h" // Include Settings.h to use the Settings class
 
 // Declare the global settings object from main.cpp
 extern Settings settings;
+esp_adc_cal_characteristics_t adc_characteristics;
+
 
 // HX711 instance
 #ifdef HX711_h
@@ -12,9 +13,13 @@ HX711 scale;
 
 // Variables for running averages
 float voltageReadings[AVERAGE_WINDOW_SIZE] = {0};
+uint32_t voltageGpioReadings[AVERAGE_WINDOW_SIZE] = {0};
 float currentReadings[AVERAGE_WINDOW_SIZE] = {0};
+uint32_t currentGpioReadings[AVERAGE_WINDOW_SIZE] = {0};
 int voltageIndex = 0;
+int voltageGpioIndex = 0;
 int currentIndex = 0;
+int currentGpioIndex = 0;
 
 // Global variables to track running consumption and elapsed time
 float totalConsumption; // Total consumption in mAh
@@ -26,9 +31,16 @@ unsigned long timerStartTime = 0;        // Stores the start time of the timer
 unsigned long timerElapsedTime = 0;      // Stores the elapsed time when paused
 
 void initSensors() {
-    // Initialize pins
-    pinMode(VOLTAGE_SENSOR_PIN, INPUT); // Set voltage sensor pin as input  
+    // Initialize ADC
     pinMode(CURRENT_SENSOR_PIN, INPUT); // Set current sensor pin as input    
+    adc1_config_width(ADC_WIDTH);
+    adc1_config_channel_atten(ADC_VOLTAGE_SENSOR_CHANNEL, ADC_ATTEN);
+    adc1_config_channel_atten(ADC_CURRENT_SENSOR_CHANNEL, ADC_ATTEN);
+    adc1_config_channel_atten(ADC_THTOTTLE_CHANNEL, ADC_ATTEN);
+    // Characterize the ADC
+    esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH, DEFAULT_VREF, &adc_characteristics);
+
+
     // Initialize the HX711 weight sensor
     #ifdef HX711_h
     scale.begin(HX711_DT_PIN, HX711_SCK_PIN);
@@ -47,19 +59,40 @@ void calibrateWeightSensor() {
     #endif
 }
 
+uint32_t readVoltageGpio(){
+    uint32_t adc_reading = adc1_get_raw(ADC_VOLTAGE_SENSOR_CHANNEL);
+    uint32_t vOut = esp_adc_cal_raw_to_voltage(adc_reading, &adc_characteristics);
+    // Update running average
+    voltageGpioReadings[voltageIndex] = vOut;
+    voltageGpioIndex = (voltageIndex + 1) % AVERAGE_WINDOW_SIZE;
+
+    float sum = 0;
+    for (int i = 0; i < AVERAGE_WINDOW_SIZE; i++) {
+        sum += voltageGpioReadings[i];
+    }
+    return sum / AVERAGE_WINDOW_SIZE;
+}
+
+uint32_t readCurrentGpio(){
+    uint32_t adc_reading = adc1_get_raw(ADC_CURRENT_SENSOR_CHANNEL);
+    uint32_t vOut = esp_adc_cal_raw_to_voltage(adc_reading, &adc_characteristics);
+    // Update running average
+    currentGpioReadings[currentIndex] = vOut;
+    currentGpioIndex = (currentIndex + 1) % AVERAGE_WINDOW_SIZE;
+
+    float sum = 0;
+    for (int i = 0; i < AVERAGE_WINDOW_SIZE; i++) {
+        sum += currentGpioReadings[i];
+    }
+    return sum / AVERAGE_WINDOW_SIZE;
+}
+
 // Function to read and smooth voltage sensor readings
 float readVoltageSensor() {
-    // float vOut = analogRead(VOLTAGE_SENSOR_PIN) * (3.3 / 4095.0); // Convert ADC value to voltage
-    int analogSum = 0;
-    for (int i = 0; i < 32; i++) {
-        analogSum += analogRead(VOLTAGE_SENSOR_PIN);
-    }
-    int avg = analogSum / 32;    
-    float vOut = avg * (3.3 / 4095.0); // Convert ADC value to voltage
-    float voltage = ((vOut - (settings.getVoltageOffset() / 1000.00)) / (settings.getVoltsPerPointVoltage() / 1000.00)); // Convert ADC value to voltage
 
-    // Calculate adjusted voltage using voltsPerPointVoltage and voltageOffset from settings
-    // voltage = (voltage / settings.getVoltsPerPointVoltage()) + settings.getVoltageOffset();
+    uint32_t adc_reading = adc1_get_raw(ADC_VOLTAGE_SENSOR_CHANNEL);
+    float vOut = esp_adc_cal_raw_to_voltage(adc_reading, &adc_characteristics) / 1000.00;
+    float voltage = vOut * settings.getVoltsPerPointVoltage() + settings.getVoltageOffset(); // Convert ADC value to voltage
 
     // Update running average
     voltageReadings[voltageIndex] = voltage;
@@ -74,14 +107,10 @@ float readVoltageSensor() {
 
 // Function to read and smooth current sensor readings
 float readCurrentSensor() {
-    // float vOut = analogRead(CURRENT_SENSOR_PIN) * (3.3 / 4095.0); // Convert ADC value to voltage
-    int analogSum = 0;
-    for (int i = 0; i < 32; i++) {
-        analogSum += analogRead(VOLTAGE_SENSOR_PIN);
-    }
-    int avg = analogSum / 32;      
-    float vOut = avg * (3.3 / 4095.0); // Convert ADC value to voltage
-    float current = (vOut - (settings.getCurrentOffset() / 1000.00)) / (settings.getVoltsPerPointCurrent() / 1000.00); // Sensitivity = Sensor Sensitivity x Voltage Divider Sensitivity
+    
+    uint32_t adc_reading = adc1_get_raw(ADC_CURRENT_SENSOR_CHANNEL);
+    float vOut = esp_adc_cal_raw_to_voltage(adc_reading, &adc_characteristics) / 1000.00;
+    float current = vOut * settings.getVoltsPerPointCurrent() + settings.getCurrentOffset(); // Convert ADC value to voltage
 
     // Update running average
     currentReadings[currentIndex] = current;
@@ -97,8 +126,6 @@ float readCurrentSensor() {
 // Function to reset the HX711 weight sensor
 void resetWeightSensor() {
     #ifdef HX711_h
-    scale.begin(HX711_DT_PIN, HX711_SCK_PIN);
-    scale.set_scale(); // Set scale to default
     scale.tare();      // Reset the scale to zero
     #endif
 }
@@ -114,7 +141,7 @@ float readWeightSensor() {
 
     // Read raw weight and adjust using the weight offset from settings
     float rawWeight = scale.get_units(10); // Average over 10 readings
-    adjustedWeight = rawWeight + settings.getThrustOffset();
+    // adjustedWeight = rawWeight + settings.getThrustOffset();
     #endif
     return adjustedWeight;
 }
