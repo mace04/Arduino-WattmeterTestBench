@@ -60,7 +60,7 @@ void TftCalibrate::init(bool calibrateEsc) {
     drawButton(resetButton);
 
     String error;
-    motorControl.startManual(error);
+    motorControl.startManual(error, true);
     if (!error.isEmpty()) {
         Serial.println("Motor start error: " + error);
     }
@@ -127,7 +127,7 @@ void TftCalibrate::handle() {
         panelThrust.value[0] = '\0';
 
         snprintf(panelVoltage.value, sizeof(panelVoltage.value), "%.2f", readVoltageSensor());
-        snprintf(panelCurrent.value, sizeof(panelCurrent.value), "%d", readCurrentSensor());
+        snprintf(panelCurrent.value, sizeof(panelCurrent.value), "%.1f", readCurrentSensor());
         snprintf(panelThrust.value, sizeof(panelThrust.value), "%d", readWeightSensor());
 
         voltsGPIOBox.value = String(readVoltageGpio());

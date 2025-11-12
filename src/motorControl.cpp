@@ -51,7 +51,7 @@ void MotorControl::reset() {
     Serial.println("MotorControl has been reset to default state.");
 }
 
-bool MotorControl::startManual(String& error) {
+bool MotorControl::startManual(String& error, bool calibrate) {
     if (throttleCut) {
         error = "Cannot start motor. Throttle cut is enabled.";
         return false;
@@ -66,7 +66,7 @@ bool MotorControl::startManual(String& error) {
     setRunningMode(MANUAL);
 
     // Set running state to true
-    setRunning(true);
+    setRunning(!calibrate);
 
     // Initialize throttle to 0
     setThrottle(0);

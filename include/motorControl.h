@@ -24,7 +24,7 @@ public:
     // Functions
     void init(Settings& settings); // Initialize the motor control
     void reset(); // Method to reset the motor control state
-    bool startManual(String& error); // Method to start the motor in manual mode
+    bool startManual(String& error, bool calibrate = false); // Method to start the motor in manual mode
     bool startAuto(String& error);
     void handleControls(); // Method to handle manual controls
     void handleAutoTest(); // Method to handle auto test
