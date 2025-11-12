@@ -131,8 +131,8 @@ void resetWeightSensor() {
 }
 
 // Function to read weight in grams from the HX711 sensor
-float readWeightSensor() {
-    float adjustedWeight = 0.0; // Initialize adjusted weight
+int readWeightSensor() {
+    int adjustedWeight = 0; // Initialize adjusted weight
     #ifdef HX711_h
     if (!scale.is_ready()) {
         Serial.println("HX711 not ready");

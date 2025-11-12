@@ -35,7 +35,7 @@ void calibrateWeightSensor();
 float readVoltageSensor();
 float readCurrentSensor();
 void resetWeightSensor();
-float readWeightSensor();
+int readWeightSensor();
 uint32_t readVoltageGpio();
 uint32_t readCurrentGpio();
 
