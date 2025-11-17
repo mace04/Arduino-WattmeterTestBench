@@ -2,7 +2,8 @@
 #define WEBSERVERHANDLER_H
 
 #include <WiFi.h>
-#include <WebServer.h>
+#include <AsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include <SPIFFS.h>
 #include <Update.h>
 #include <SD.h>
@@ -18,15 +19,17 @@ extern Profile testProfile;
 void initWiFi(const char* ssid, const char* password);
 void initWebServer(Settings& settings);
 void handleWebServer();
-void handleGetUpdate(WebServer& server, const String& message);
-void handlePostUpdate(WebServer& server);
-void handlePostUpload(WebServer& server, Settings& settings);
-void handleGetSettings(WebServer& server, Settings& settings, bool isSaved = false);
-void handlePostSettings(WebServer& server, Settings& settings);
-void handleFileAccess(WebServer& server);
-void handleStorageAccess(WebServer& server);
-void handleFileContent(WebServer& server);
-void handleRealtimeStreaming(WebServer& server);
-void handleGetTestProfile(WebServer& server, bool isSaved = false);
-void handlePostTestProfile(WebServer& server);
+void sendDebugEvent(const String& msg);
+void sendLogEvent(const String& msg);
+void handleGetUpdate(AsyncWebServerRequest *request, const String& message, int code = 200);
+void handlePostUpdate(AsyncWebServerRequest *request);
+void handlePostUpload(AsyncWebServerRequest *request, const String& filename, size_t index, uint8_t *data, size_t len, bool final);
+void handleGetSettings(AsyncWebServerRequest *request, Settings& settings, bool isSaved = false);
+void handlePostSettings(AsyncWebServerRequest *request, Settings& settings);
+void handleFileAccess(AsyncWebServerRequest *request);
+void handleStorageAccess(AsyncWebServerRequest *request);
+void handleFileContent(AsyncWebServerRequest *request);
+void handleRealtimeStreaming(AsyncWebServerRequest *request);
+void handleGetTestProfile(AsyncWebServerRequest *request, bool isSaved = false);
+void handlePostTestProfile(AsyncWebServerRequest *request);
 #endif // WEBSERVERHANDLER_H
