@@ -246,3 +246,33 @@ textarea#file-content {
     gap: 20px;
     width: 100%;
 }
+
+#log {
+    margin-top: 30px;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    color: #00ff00;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.log-entry {
+    margin: 2px 0;
+}
+
+.log-entry.info {
+    color: #00ff00;
+}
+
+.log-entry.error {
+    color: #ff0000;
+}
+
+.log-entry.warning {
+    color: #ffaa00;
+}

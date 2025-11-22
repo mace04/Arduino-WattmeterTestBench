@@ -5,6 +5,7 @@ AsyncEventSource events("/events");  // SSE endpoint
 
 extern TFT_eSPI tft;
 extern MotorControl motorControl;
+extern Settings settings;
 
 void initWiFi(const char* ssid, const char* password) {
     WiFi.begin(ssid, password);
@@ -50,9 +51,9 @@ void initWebServer(Settings& settings) {
         request->send(SPIFFS, "/style.css", "text/css");
     });
 
-    // Serve index.js for GET /index.js
-    server.on("/index.js", HTTP_GET, [](AsyncWebServerRequest *request) {
-        request->send(SPIFFS, "/index.js", "application/javascript");
+    // Serve common.js for GET /index.js
+    server.on("/common.js", HTTP_GET, [](AsyncWebServerRequest *request) {
+        request->send(SPIFFS, "/common.js", "application/javascript");
     });
 
     // Handle POST /settings to update settings
@@ -240,8 +241,7 @@ void handleRealtimeStreaming(AsyncWebServerRequest *request) {
 
 void handleGetUpdate(AsyncWebServerRequest *request, const String& message, int code) {
     if (motorControl.isRunning() && code != 200) {
-        // request->send(403, "text/plain", "Motor is running. Cannot update firmware.");
-        handleGetUpdate(request, "Motor is running. Cannot update firmware.", 403);
+        request->send(403, "text/plain", "Motor is running. Cannot update firmware.");
         return;
     }
 
@@ -270,6 +270,7 @@ void handleGetUpdate(AsyncWebServerRequest *request, const String& message, int 
 void handlePostUpdate(AsyncWebServerRequest *request) {
     tft.fillScreen(TFT_NAVY);
     String response = (Update.hasError()) ? "Update Failed" : "Update Successful. Rebooting...";
+    sendDebugEvent(response);
     request->send(200, "text/plain", response);
     delay(3000);
     ESP.restart();
@@ -282,6 +283,7 @@ void handlePostUpload(AsyncWebServerRequest *request, const String& filename, si
 
     if (index == 0) {
         Serial.printf("Upload Start: %s\n", filename.c_str());
+        sendDebugEvent("Upload Start: " + filename);
         updateSize = 0;
 
         TftUpdate tftUpdate(tft);
@@ -295,6 +297,7 @@ void handlePostUpload(AsyncWebServerRequest *request, const String& filename, si
         }
 
         Serial.printf("Upload Type: %s\n", uploadType.c_str());
+        sendDebugEvent("Upload Type: " + uploadType);
 
         // Handle firmware update
         if (uploadType == "firmware") {
@@ -304,16 +307,26 @@ void handlePostUpload(AsyncWebServerRequest *request, const String& filename, si
                 return;
             }
             Serial.println("Started firmware update...");
+            sendDebugEvent("Started firmware update...");
         }
         // Handle filesystem upload
         else if (uploadType == "filesystem") {
-            // Create or open file in SPIFFS
+            // Backup settings.json if the upload type is filesystem
+            if (uploadType == "filesystem") {
+                if (SPIFFS.exists("/settings.json")) {
+                    settings.loadSettings();
+                    Serial.println("settings.json backed up successfully.");
+                    sendDebugEvent("settings.json backed up successfully.");
+                }
+            }            
             if (!Update.begin(UPDATE_SIZE_UNKNOWN, U_SPIFFS)) {
                 Update.printError(Serial);
                 request->send(500, "text/plain", "OTA begin failed");
                 return;
             }
-            Serial.println("Started filesystem update...");        }
+            Serial.println("Started filesystem update...");
+            sendDebugEvent("Started filesystem update...");
+        }
         else {
             request->send(400, "text/plain", "Invalid uploadType parameter. Use 'firmware' or 'filesystem'");
             return;
@@ -330,11 +343,19 @@ void handlePostUpload(AsyncWebServerRequest *request, const String& filename, si
     if (final) {
         if (Update.end(true)) {
             Serial.printf("Update Success: %u bytes\nRebooting...\n", updateSize);
-            request->send(200, "text/html", 
-                    "<html><body><p>Firmware update successful!</p>"
-                    "<p>Rebooting ESP32...</p>"
-                    "<meta http-equiv='refresh' content='3; url=/' />"
-                    "</body></html>");
+            sendDebugEvent("Update Success: " + String(updateSize) + " bytes. Rebooting...");
+
+            // Restore settings.json if the upload type is filesystem
+            if (uploadType == "filesystem") {
+                settings.saveSettings();
+                Serial.println("settings.json restored successfully.");
+                sendDebugEvent("settings.json restored successfully.");
+            }
+            // request->send(200, "text/html",
+            //     "<html><body><p>Firmware update successful!</p>"
+            //     "<p>Rebooting ESP32...</p>"
+            //     "<meta http-equiv='refresh' content='3; url=/' />"
+            //     "</body></html>");
             delay(3000);
             ESP.restart();
         } else {
