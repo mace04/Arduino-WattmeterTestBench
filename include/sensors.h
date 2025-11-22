@@ -4,6 +4,7 @@
 // #include <HX711.h>
 #include <esp_adc_cal.h>
 #include "Settings.h" // Include Settings.h to use the Settings class
+#include "WebServerHandler.h"
 
 // GPIO pin definitions
 #define VOLTAGE_SENSOR_PIN 35   //Voltage Divider - R1:14.98 KOhm, R2:2.14KOhm

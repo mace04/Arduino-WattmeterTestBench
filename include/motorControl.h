@@ -5,6 +5,7 @@
 #include <ESP32Servo.h>
 #include "sensors.h"
 #include "Settings.h"
+#include "WebServerHandler.h"   
 
 // Pin definitions
 #define THROTTLE_CONTROL_PIN 36 // Pin for throttle control input

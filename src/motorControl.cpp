@@ -25,6 +25,7 @@ void MotorControl::init(Settings& settings){
     escControl.attach(ESC_OUTPUT_PIN, MIN_THROTTLE, MAX_THROTTLE); // attaches the servo on pin 18 to the servo object
     escControl.writeMicroseconds(MIN_THROTTLE); // Set initial ESC signal to minimum throttle
     Serial.println("ESC Microseconds: " + String(escControl.readMicroseconds())); // Debugging output
+    sendDebugEvent("ESC Microseconds: " + String(escControl.readMicroseconds()));
 }
 
 void MotorControl::reset() {
@@ -49,6 +50,7 @@ void MotorControl::reset() {
     resetTimer(); // Assuming resetTimer() is defined elsewhere
 
     Serial.println("MotorControl has been reset to default state.");
+    sendDebugEvent("MotorControl has been reset to default state.");
 }
 
 bool MotorControl::startManual(String& error, bool calibrate) {
@@ -75,6 +77,7 @@ bool MotorControl::startManual(String& error, bool calibrate) {
     startTimer(); // Assuming startTimer() is defined elsewhere
 
     Serial.println("Motor started in MANUAL mode.");
+    sendDebugEvent("Motor started in MANUAL mode.");
 
     return true;
 }
@@ -104,6 +107,7 @@ bool MotorControl::startAuto(String& error) {
     stateCurrentThrottle = 0; // Current throttle percentage
 
     Serial.println("Motor started in AUTO mode.");
+    sendDebugEvent("Motor started in AUTO mode.");
 
     return true;
 }
@@ -114,6 +118,7 @@ void MotorControl::handleControls(){
         setThrottleCut(true); // Set throttleCut to true
         setRunning(false);    // Set running to false    
         Serial.println("Throttle cut activated! Motor stopped.");
+        sendDebugEvent("Throttle cut activated! Motor stopped.");
     }
     static int lastThrottle = 0;
     if (!getThrottleCut() && getRunningMode() == MotorControl::MANUAL) {
@@ -122,6 +127,7 @@ void MotorControl::handleControls(){
         if (lastThrottle != getThrottlePercent() && isRunning()) {
             lastThrottle = getThrottlePercent();
             Serial.println("Throttle change: " + String(lastThrottle) + "%");
+            sendDebugEvent("Throttle change: " + String(lastThrottle) + "%");
         }
     }
 }
@@ -132,6 +138,7 @@ void MotorControl::handleAutoTest() {
     switch (state) {
         case 0: // Ramp up from 0% to 50%
             Serial.println("Auto Test State 0: Ramping up to 50%");
+            sendDebugEvent("Auto Test State 0: Ramping up to 50%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle < 50) {
                 int elapsed = currentTime - stateStartTime;
@@ -147,6 +154,7 @@ void MotorControl::handleAutoTest() {
 
         case 1: // Hold at 50%
             Serial.println("Auto Test State 1: Holding at 50%");
+            sendDebugEvent("Auto Test State 1: Holding at 50%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (currentTime - stateStartTime >= phaseDuration * 1000) {
                 stateStartTime = 0; // Reset start time
@@ -156,6 +164,7 @@ void MotorControl::handleAutoTest() {
 
         case 2: // Ramp up from 50% to 100%
             Serial.println("Auto Test State 2: Ramping up to 100%");
+            sendDebugEvent("Auto Test State 2: Ramping up to 100%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle < 100) {
                 int elapsed = currentTime - stateStartTime;
@@ -171,6 +180,7 @@ void MotorControl::handleAutoTest() {
 
         case 3: // Hold at 100%
             Serial.println("Auto Test State 3: Holding at 100%");
+            sendDebugEvent("Auto Test State 3: Holding at 100%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (currentTime - stateStartTime >= phaseDuration * 1000) {
                 stateStartTime = 0; // Reset start time
@@ -180,6 +190,7 @@ void MotorControl::handleAutoTest() {
 
         case 4: // Ramp down from 100% to 0%
             Serial.println("Auto Test State 4: Ramping down to 0%");
+            sendDebugEvent("Auto Test State 4: Ramping down to 0%");
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle > 0) {
                 int elapsed = currentTime - stateStartTime;
@@ -217,11 +228,13 @@ void MotorControl::stop() {
     escControl.writeMicroseconds(MIN_THROTTLE); // Set initial ESC signal to minimum throttle
 
     Serial.println("Motor has been stopped.");
+    sendDebugEvent("Motor has been stopped.");
 }
 
 bool MotorControl::isThrottle() {
     int throttleValue = adc1_get_raw(ADC_THROTTLE_SENSOR_CHANNEL); // Read the throttle pin value
     Serial.println("Throttle pin value: " + String(throttleValue)); // Debugging output
+    sendDebugEvent("Throttle pin value: " + String(throttleValue));
     return throttleValue > 0; // Return true if throttle is not 0, false otherwise
 }
 

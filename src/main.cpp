@@ -209,6 +209,7 @@ void setup() {
     Serial.println("Web Server Initialised");
 
     Serial.println("Setup complete. Tasks started on both cores.");
+    sendDebugEvent("Setup complete. Tasks started on both cores.");
     delay(2000);
 
     detachInterrupt(digitalPinToInterrupt(THROTTLE_CUT_PIN));

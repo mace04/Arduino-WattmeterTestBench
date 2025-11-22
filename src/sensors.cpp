@@ -136,6 +136,7 @@ int readWeightSensor() {
     #ifdef HX711_h
     if (!scale.is_ready()) {
         Serial.println("HX711 not ready");
+        sendDebugEvent("HX711 not ready");
         return 0.0;
     }
 
@@ -165,6 +166,7 @@ void startTimer() {
         timerStartTime = millis() - timerElapsedTime; // Resume from the paused time
         timerRunning = true; // Set the timer to running
         Serial.println("Timer started.");
+        sendDebugEvent("Timer started.");
     }
 }
 
@@ -173,6 +175,7 @@ void pauseTimer() {
         timerElapsedTime = millis() - timerStartTime; // Calculate elapsed time
         timerRunning = false; // Pause the timer
         Serial.println("Timer paused.");
+        sendDebugEvent("Timer paused.");
     }
 }
 
@@ -181,6 +184,7 @@ void resetTimer() {
     timerStartTime = 0;   // Reset the start time
     timerElapsedTime = 0; // Reset the elapsed time
     Serial.println("Timer reset.");
+    sendDebugEvent("Timer reset.");
 }
 
 String getElapsedTime() {
