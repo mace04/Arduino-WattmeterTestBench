@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Function to add log entries
-function addLog(message, type = "info") {
+function addLog(message, type = "log") {
     const logDiv = document.getElementById("log");
     const entry = document.createElement("div");
     entry.className = `log-entry ${type}`;
@@ -25,11 +25,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const eventSource = new EventSource("/events");
     
     eventSource.addEventListener("debug", (event) => {
-        addLog(event.data, "info");
+        addLog(event.data, "debug");
     });
     
     eventSource.addEventListener("log", (event) => {
-        addLog(event.data, "info");
+        addLog(event.data, "log");
     });
     
     eventSource.addEventListener("error", (event) => {

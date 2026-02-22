@@ -265,7 +265,7 @@ textarea#file-content {
     margin: 2px 0;
 }
 
-.log-entry.info {
+.log-entry.log {
     color: #00ff00;
 }
 
@@ -274,5 +274,9 @@ textarea#file-content {
 }
 
 .log-entry.warning {
+    color: #ffaa00;
+}
+
+.log-entry.debug {
     color: #ffaa00;
 }
