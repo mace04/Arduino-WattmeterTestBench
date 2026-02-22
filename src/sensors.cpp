@@ -44,18 +44,41 @@ void initSensors() {
     // Initialize the HX711 weight sensor
     #ifdef HX711_h
     scale.begin(HX711_DT_PIN, HX711_SCK_PIN);
-    scale.set_scale(settings.getThrustScale()); // Set scale from settings
-    scale.set_offset(settings.getThrustOffset());
-    scale.tare(); // Reset the scale to zero
+
+    // wait for HX711 to become ready (timeout)
+    const unsigned long timeoutMs = 2000; // adjust as needed
+    unsigned long start = millis();
+    while (!scale.is_ready() && (millis() - start) < timeoutMs) {
+        delay(10);
+    }
+    if (scale.is_ready()) {
+        scale.set_scale(settings.getThrustScale()); // Set scale from settings
+        scale.set_offset(settings.getThrustOffset());
+        scale.tare(); // Reset the scale to zero (only if ready)
+        sendDebugEvent("HX711 initialized and ready.");
+    } else {
+        sendErrorEvent("HX711 initialization failed: not ready (check wiring/power).");
+        // do not call tare() if not ready
+    }
     #endif
 }
 
 void calibrateWeightSensor() {
     // It is assumed the initSensors have been called before this function and the scale is initialized    
     #ifdef HX711_h
-    scale.set_scale(); // Set scale to default
-    scale.set_offset();
-    scale.tare();      // Reset the scale to zero
+    const unsigned long timeoutMs = 2000; // adjust as needed
+    unsigned long start = millis();
+    while (!scale.is_ready() && (millis() - start) < timeoutMs) {
+        delay(10);
+    }
+    if (scale.is_ready()) {
+        scale.set_scale(); // Set scale to default
+        scale.set_offset();
+        scale.tare();      // Reset the scale to zero
+    }
+    else {
+        sendErrorEvent("HX711 not ready for calibration");
+    }
     #endif
 }
 
@@ -63,7 +86,8 @@ uint32_t readVoltageGpio(){
     uint32_t adc_reading = adc1_get_raw(ADC_VOLTAGE_SENSOR_CHANNEL);
     uint32_t vOut = esp_adc_cal_raw_to_voltage(adc_reading, &adc_characteristics);
     // Update running average
-    voltageGpioReadings[voltageIndex] = vOut;
+    // voltageGpioReadings[voltageIndex] = vOut;
+    return vOut;
     voltageGpioIndex = (voltageIndex + 1) % AVERAGE_WINDOW_SIZE;
 
     float sum = 0;
@@ -77,7 +101,8 @@ uint32_t readCurrentGpio(){
     uint32_t adc_reading = adc1_get_raw(ADC_CURRENT_SENSOR_CHANNEL);
     uint32_t vOut = esp_adc_cal_raw_to_voltage(adc_reading, &adc_characteristics);
     // Update running average
-    currentGpioReadings[currentIndex] = vOut;
+    // currentGpioReadings[currentIndex] = vOut;
+    return vOut;
     currentGpioIndex = (currentIndex + 1) % AVERAGE_WINDOW_SIZE;
 
     float sum = 0;
@@ -126,23 +151,50 @@ float readCurrentSensor() {
 // Function to reset the HX711 weight sensor
 void resetWeightSensor() {
     #ifdef HX711_h
-    scale.tare();      // Reset the scale to zero
+    const unsigned long timeoutMs = 2000; // adjust as needed
+    unsigned long start = millis();
+    while (!scale.is_ready() && (millis() - start) < timeoutMs) {
+        delay(10);
+    }
+    if (scale.is_ready()) {
+        scale.tare();      // Reset the scale to zero
+    }
+    else {
+        sendErrorEvent("HX711 not ready for reset");
+    }
     #endif
 }
 
 // Function to read weight in grams from the HX711 sensor
 int readWeightSensor() {
-    int adjustedWeight = 0; // Initialize adjusted weight
+    int adjustedWeight = 0;
     #ifdef HX711_h
-    if (!scale.is_ready()) {
-        Serial.println("HX711 not ready");
-        sendDebugEvent("HX711 not ready");
-        return 0.0;
+    static bool warnedNotReady = false;
+    
+    // Retry logic: wait up to 100ms for HX711 to be ready
+    const unsigned long retryTimeoutMs = 100;
+    unsigned long retryStart = millis();
+    
+    while (!scale.is_ready() && (millis() - retryStart) < retryTimeoutMs) {
+        delay(5); // Small delay between checks
     }
-
+    
+    if (!scale.is_ready()) {
+        if (!warnedNotReady) {
+            warnedNotReady = true;
+            sendErrorEvent("HX711 not ready after retry");
+            Serial.println("HX711 not ready");
+        }
+        return adjustedWeight; // Return 0 or last valid value
+    }
+    
+    // Reset warning flag once successfully read
+    warnedNotReady = false;
+    
     // Read raw weight and adjust using the weight offset from settings
-    float rawWeight = scale.get_units(10); // Average over 10 readings
-    // adjustedWeight = rawWeight + settings.getThrustOffset();
+    float rawWeight = scale.get_units(5); // Reduced from 10 to 5 for speed
+    adjustedWeight = (int)rawWeight; // Cast to int, already includes offset if set
+    
     #endif
     return adjustedWeight;
 }
