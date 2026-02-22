@@ -137,8 +137,12 @@ void MotorControl::handleAutoTest() {
 
     switch (state) {
         case 0: // Ramp up from 0% to 50%
-            Serial.println("Auto Test State 0: Ramping up to 50%");
-            sendDebugEvent("Auto Test State 0: Ramping up to 50%");
+            static bool stage0Logged = false;
+            if (!stage0Logged) {
+                Serial.println("Auto Test State 0: Ramping up to 50%");
+                sendDebugEvent("Auto Test State 0: Ramping up to 50%");
+                stage0Logged = true;
+            }
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle < 50) {
                 int elapsed = currentTime - stateStartTime;
@@ -153,8 +157,12 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 1: // Hold at 50%
-            Serial.println("Auto Test State 1: Holding at 50%");
-            sendDebugEvent("Auto Test State 1: Holding at 50%");
+            static bool stage1Logged = false;
+            if (!stage1Logged) {
+                Serial.println("Auto Test State 1: Holding at 50%");
+                sendDebugEvent("Auto Test State 1: Holding at 50%");
+                stage1Logged = true;
+            }
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (currentTime - stateStartTime >= phaseDuration * 1000) {
                 stateStartTime = 0; // Reset start time
@@ -163,8 +171,12 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 2: // Ramp up from 50% to 100%
-            Serial.println("Auto Test State 2: Ramping up to 100%");
-            sendDebugEvent("Auto Test State 2: Ramping up to 100%");
+            static bool stage2Logged = false;
+            if (!stage2Logged) {    
+                Serial.println("Auto Test State 2: Ramping up to 100%");
+                sendDebugEvent("Auto Test State 2: Ramping up to 100%");
+                stage2Logged = true;
+            }
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle < 100) {
                 int elapsed = currentTime - stateStartTime;
@@ -179,8 +191,12 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 3: // Hold at 100%
-            Serial.println("Auto Test State 3: Holding at 100%");
-            sendDebugEvent("Auto Test State 3: Holding at 100%");
+            static bool stage3Logged = false;
+            if (!stage3Logged) {    
+                Serial.println("Auto Test State 3: Holding at 100%");
+                sendDebugEvent("Auto Test State 3: Holding at 100%");
+                stage3Logged = true;
+            }
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (currentTime - stateStartTime >= phaseDuration * 1000) {
                 stateStartTime = 0; // Reset start time
@@ -189,8 +205,12 @@ void MotorControl::handleAutoTest() {
             break;
 
         case 4: // Ramp down from 100% to 0%
-            Serial.println("Auto Test State 4: Ramping down to 0%");
-            sendDebugEvent("Auto Test State 4: Ramping down to 0%");
+            static bool stage4Logged = false;
+            if (!stage4Logged) {
+                Serial.println("Auto Test State 4: Ramping down to 0%");
+                sendDebugEvent("Auto Test State 4: Ramping down to 0%");
+                stage4Logged = true;
+            }
             if (stateStartTime == 0) stateStartTime = currentTime; // Initialize start time
             if (stateCurrentThrottle > 0) {
                 int elapsed = currentTime - stateStartTime;
