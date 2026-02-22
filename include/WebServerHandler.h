@@ -20,6 +20,7 @@ void initWiFi(const char* ssid, const char* password);
 void initWebServer(Settings& settings);
 void handleWebServer();
 void sendDebugEvent(const String& msg);
+void sendErrorEvent(const String& msg);
 void sendLogEvent(const String& msg);
 void handleGetUpdate(AsyncWebServerRequest *request, const String& message, int code = 200);
 void handlePostUpdate(AsyncWebServerRequest *request);

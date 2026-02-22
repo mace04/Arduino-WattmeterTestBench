@@ -110,6 +110,10 @@ void sendDebugEvent(const String& msg) {
     events.send(msg.c_str(), "debug", millis());
 }
 
+void sendErrorEvent(const String& msg) {
+    events.send(msg.c_str(), "error", millis());
+}
+
 void sendLogEvent(const String& msg) {
     events.send(msg.c_str(), "log", millis());
 }
