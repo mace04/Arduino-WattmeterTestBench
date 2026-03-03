@@ -82,7 +82,7 @@ void TftMainMenu::handleTouch() {
         TS_Point p = ts.getPoint();
         int x = map(p.y, 0, 4095, 0, tft.width()); // Map touch X to screen X
         int y = map(p.x, 0, 4095, 0, tft.height()); // Map touch Y to screen Y
-        Serial.println("Touch coordinates: " + String(x) + ", " + String(y));
+        // Serial.println("Touch coordinates: " + String(x) + ", " + String(y));
 
         // Check if a button was pressed
         for (int i = 0; i < 3; i++) {
