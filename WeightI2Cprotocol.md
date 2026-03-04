@@ -2,6 +2,8 @@
 
 This document defines the I2C protocol used between the ESP32 firmware and the external weight sensor bridge device.
 
+Companion I2C device implementation: https://github.com/mace04/Arduino-WeightSensor
+
 ## Overview
 
 - **Bus mode**: ESP32 is I2C **master**

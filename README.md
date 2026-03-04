@@ -2,6 +2,9 @@
 
 A comprehensive motor test bench system built on ESP32, designed for measuring and analyzing the performance of electric motors in RC applications (propellers and EDF units). The system provides both local touchscreen interface and web-based remote control with real-time monitoring capabilities.
 
+I had great problem connecting my HX711 sensor to ESP32 and make it work, so I decided to us an arduino that will read the weight sensor and send the readings to ESP via I2C. For more details see project in [mace04/Arduino-WeightSensor](https://github.com/mace04/Arduino-WeightSensor)
+
+
 ## Project Overview
 
 This test bench measures voltage, current, power consumption, thrust, and monitors motor performance over time. It supports both manual throttle control and automated test sequences with configurable parameters. The dual-core ESP32 handles sensor acquisition and web services concurrently, making it ideal for precision motor testing.
@@ -46,6 +49,7 @@ This test bench measures voltage, current, power consumption, thrust, and monito
 - **Elapsed Time**: Test duration timer (mm:ss format)
 
 #### Weight Sensor I2C Protocol
+- **Companion Device Project**: [mace04/Arduino-WeightSensor](https://github.com/mace04/Arduino-WeightSensor)
 - **I2C Address**: `0x11`
 - **Pins**: SDA=`GPIO26`, SCL=`GPIO25`
 - **Read Payload**: 4-byte `float` (weight in grams)
