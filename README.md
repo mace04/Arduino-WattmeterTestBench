@@ -40,10 +40,20 @@ This test bench measures voltage, current, power consumption, thrust, and monito
 
 - **Voltage**: 12-bit ADC with calibration and running average filter
 - **Current**: 12-bit ADC with calibration and running average filter  
-- **Thrust**: HX711 load cell amplifier with configurable scale and offset
+- **Thrust**: I2C weight sensor bridge with configurable scale and offset
 - **Power**: Calculated from voltage × current
 - **Energy Consumption**: Accumulated mAh over time
 - **Elapsed Time**: Test duration timer (mm:ss format)
+
+#### Weight Sensor I2C Protocol
+- **I2C Address**: `0x11`
+- **Pins**: SDA=`GPIO26`, SCL=`GPIO25`
+- **Read Payload**: 4-byte `float` (weight in grams)
+- **Calibration Payload**: 8-byte packet `{ float scale, int32_t offset }`
+- **Tare Reset Command**: single-byte command `0xA5` (`I2C_CMD_TARE_RESET`)
+- **Read Fallback Behavior**: if read payload is incomplete/invalid, firmware returns the last known valid weight
+
+See detailed protocol documentation: [WeightI2Cprotocol.md](WeightI2Cprotocol.md)
 
 ### 3. Display Interface (TFT Touchscreen)
 
@@ -86,7 +96,7 @@ All settings stored in `/settings.json` on SPIFFS:
 - **Throttle Cut Switch**: Hardware emergency stop (GPIO 22)
 - **Pre-start Checks**: Validates throttle at zero before starting
 - **Error Handling**: Comprehensive error messages via web and display
-- **HX711 Timeout Protection**: Prevents hanging on sensor failures
+- **I2C Read Validation**: Guards against short/invalid payloads and falls back to last valid reading
 
 ## ESP32 GPIO Pin Mapping
 
@@ -122,8 +132,8 @@ All settings stored in `/settings.json` on SPIFFS:
 |----------|------|-------------|
 | ESC_OUTPUT_PIN | 21 | PWM output to ESC (1000-2000μs) |
 | THROTTLE_CUT_PIN | 22 | Emergency stop switch (INPUT_PULLUP) |
-| HX711_DT_PIN | 26 | Load cell data pin |
-| HX711_SCK_PIN | 25 | Load cell clock pin |
+| WEIGHT_I2C_SDA_PIN | 26 | I2C SDA for weight sensor bridge |
+| WEIGHT_I2C_SCL_PIN | 25 | I2C SCL for weight sensor bridge |
 
 ### Voltage Divider Details
 - **Voltage Sensor**: R1=14.98kΩ, R2=2.14kΩ (ratio ~105.295)
@@ -213,14 +223,14 @@ return vOut;
 
 **Fix**: Remove early returns and enable the averaging logic.
 
-### 2. HX711 Conditional Compilation
-**Location**: Multiple files
+### 2. I2C Weight Sensor Startup Calibration Disabled
+**Location**: [sensors.cpp](src/sensors.cpp)
 
-The HX711 load cell code is wrapped in `#ifdef HX711_h` checks, but the header is always included. This creates unnecessary conditional compilation.
+The initial calibration send in `initSensors()` is currently commented out. This means startup may rely on previously retained calibration state in the I2C weight bridge.
 
-**Impact**: Code complexity without benefit; HX711 is always compiled in.
+**Impact**: Scale/offset may not be explicitly initialized at boot.
 
-**Fix**: Either remove conditionals or make HX711 truly optional via build flags.
+**Fix**: Re-enable startup `sendWeightCalibration(settings.getThrustScale(), settings.getThrustOffset())` if deterministic startup calibration is required.
 
 ### 3. Static Variables in Auto Test State Machine
 **Location**: [motorControl.cpp](src/motorControl.cpp#L143-L211)
@@ -285,7 +295,7 @@ SD card is initialized in pins and main.cpp includes SD.h, but actual SD card fu
 - [ ] Add WebSocket for bidirectional communication (replace SSE)
 
 ### Code Quality
-- [ ] Refactor HX711 conditional compilation (make truly optional)
+- [x] Document I2C weight protocol in [WeightI2Cprotocol.md](WeightI2Cprotocol.md)
 - [ ] Add unit tests for calculation functions
 - [ ] Improve error handling and user feedback
 - [ ] Document web API endpoints (OpenAPI/Swagger)
@@ -305,7 +315,6 @@ SD card is initialized in pins and main.cpp includes SD.h, but actual SD card fu
 ### PlatformIO Libraries
 ```ini
 lib_deps = 
-    bogde/HX711 @ ^0.7.5
     ArduinoJson
     bodmer/TFT_eSPI @ ^2.5.43
     paulstoffregen/XPT2046_Touchscreen

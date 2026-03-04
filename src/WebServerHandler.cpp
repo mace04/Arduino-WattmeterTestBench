@@ -172,6 +172,7 @@ void handlePostSettings(AsyncWebServerRequest *request, Settings& settings) {
         settings.setTestWarmDuration(request->arg("testWarmDuration").toInt()); // Assuming testWarmDuration is defined
 
         settings.saveSettings();
+        sendWeightCalibration(settings.getThrustScale(), static_cast<int32_t>(settings.getThrustOffset()));
         // server.send(200, "application/json", "{\"status\":\"success\"}");
         handleGetSettings(request, settings, true); // Redirect to GET /settings with success message
     } else {

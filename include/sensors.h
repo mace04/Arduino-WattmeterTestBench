@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <HX711.h>
+#include <Wire.h>
 #include <esp_adc_cal.h>
 #include "Settings.h" // Include Settings.h to use the Settings class
 #include "WebServerHandler.h"
@@ -9,10 +9,12 @@
 // GPIO pin definitions
 #define VOLTAGE_SENSOR_PIN 35   //Voltage Divider - R1:14.98 KOhm, R2:2.14KOhm
 #define CURRENT_SENSOR_PIN 34   // Voltage Divider - R1:14.86 KOhm, R2:13.59KOhm
-#define HX711_DT_PIN 26
-#define HX711_SCK_PIN 25
-#define LOADCELL_CALIBRATION 139
-#define LOADCELL_OFFSET     0
+
+// I2C weight sensor bridge (implemented in test/esp32_harness/esp32_harness.ino)
+#define WEIGHT_I2C_ADDRESS 0x11
+#define WEIGHT_I2C_SDA_PIN 26
+#define WEIGHT_I2C_SCL_PIN 25
+#define I2C_CMD_TARE_RESET 0xA5
 
 // ADC Parameters
 #define DEFAULT_VREF    1100  // mV (used if no eFuse calibration)
@@ -32,6 +34,7 @@ const int AVERAGE_WINDOW_SIZE = 10;
 
 // Function prototypes
 void initSensors();
+bool sendWeightCalibration(float scale, int32_t offset);
 void calibrateWeightSensor();
 float readVoltageSensor();
 float readCurrentSensor();

@@ -1,15 +1,31 @@
 #include "sensors.h"
-// #include "HX711.h"
+#include <math.h>
 
 // Declare the global settings object from main.cpp
 extern Settings settings;
 esp_adc_cal_characteristics_t adc_characteristics;
 
+struct WeightCalibrationPacket {
+    float scale;
+    int32_t offset;
+};
 
-// HX711 instance
-#ifdef HX711_h
-HX711 scale;
-#endif
+static_assert(sizeof(WeightCalibrationPacket) == 8, "WeightCalibrationPacket must be 8 bytes");
+
+ bool sendWeightCalibration(float scale, int32_t offset) {
+    WeightCalibrationPacket packet{scale, offset};
+
+    Wire.beginTransmission(WEIGHT_I2C_ADDRESS);
+    const uint8_t* raw = reinterpret_cast<const uint8_t*>(&packet);
+    Wire.write(raw, sizeof(packet));
+    uint8_t status = Wire.endTransmission();
+
+    if (status != 0) {
+        sendErrorEvent("Weight I2C calibration write failed");
+        return false;
+    }
+    return true;
+}
 
 // Variables for running averages
 float voltageReadings[AVERAGE_WINDOW_SIZE] = {0};
@@ -40,46 +56,18 @@ void initSensors() {
     // Characterize the ADC
     esp_adc_cal_characterize(ADC_UNIT_1, ADC_ATTEN, ADC_WIDTH, DEFAULT_VREF, &adc_characteristics);
 
+    Wire.begin(WEIGHT_I2C_SDA_PIN, WEIGHT_I2C_SCL_PIN, 100000);
+    delay(100);
 
-    // Initialize the HX711 weight sensor
-    #ifdef HX711_h
-    scale.begin(HX711_DT_PIN, HX711_SCK_PIN);
-
-    // wait for HX711 to become ready (timeout)
-    const unsigned long timeoutMs = 2000; // adjust as needed
-    unsigned long start = millis();
-    while (!scale.is_ready() && (millis() - start) < timeoutMs) {
-        delay(10);
-    }
-    if (scale.is_ready()) {
-        scale.set_scale(settings.getThrustScale()); // Set scale from settings
-        scale.set_offset(settings.getThrustOffset());
-        scale.tare(); // Reset the scale to zero (only if ready)
-        sendDebugEvent("HX711 initialized and ready.");
-    } else {
-        sendErrorEvent("HX711 initialization failed: not ready (check wiring/power).");
-        // do not call tare() if not ready
-    }
-    #endif
+    // if (sendWeightCalibration(settings.getThrustScale(), static_cast<int32_t>(settings.getThrustOffset()))) {
+    //     sendDebugEvent("Weight I2C sensor initialized.");
+    // }
 }
 
 void calibrateWeightSensor() {
-    // It is assumed the initSensors have been called before this function and the scale is initialized    
-    #ifdef HX711_h
-    const unsigned long timeoutMs = 2000; // adjust as needed
-    unsigned long start = millis();
-    while (!scale.is_ready() && (millis() - start) < timeoutMs) {
-        delay(10);
-    }
-    if (scale.is_ready()) {
-        scale.set_scale(); // Set scale to default
-        scale.set_offset();
-        scale.tare();      // Reset the scale to zero
-    }
-    else {
-        sendErrorEvent("HX711 not ready for calibration");
-    }
-    #endif
+    // Resets to default calibration state, matching harness behavior
+    sendWeightCalibration(1.0f, 0);
+    resetWeightSensor();
 }
 
 uint32_t readVoltageGpio(){
@@ -148,55 +136,63 @@ float readCurrentSensor() {
     return sum / AVERAGE_WINDOW_SIZE;
 }
 
-// Function to reset the HX711 weight sensor
+// Function to reset the weight sensor via I2C calibration packet
 void resetWeightSensor() {
-    #ifdef HX711_h
-    const unsigned long timeoutMs = 2000; // adjust as needed
-    unsigned long start = millis();
-    while (!scale.is_ready() && (millis() - start) < timeoutMs) {
-        delay(10);
+    Wire.beginTransmission(WEIGHT_I2C_ADDRESS);
+    Wire.write(I2C_CMD_TARE_RESET);
+    uint8_t status = Wire.endTransmission();
+    if (status != 0) {
+        sendErrorEvent("Weight I2C tare reset command failed");
     }
-    if (scale.is_ready()) {
-        scale.tare();      // Reset the scale to zero
-    }
-    else {
-        sendErrorEvent("HX711 not ready for reset");
-    }
-    #endif
 }
 
-// Function to read weight in grams from the HX711 sensor
+// Function to read weight in grams from I2C weight device
 int readWeightSensor() {
-    int adjustedWeight = 0;
-    #ifdef HX711_h
-    static bool warnedNotReady = false;
-    
-    // Retry logic: wait up to 100ms for HX711 to be ready
-    const unsigned long retryTimeoutMs = 100;
-    unsigned long retryStart = millis();
-    
-    while (!scale.is_ready() && (millis() - retryStart) < retryTimeoutMs) {
-        delay(5); // Small delay between checks
-    }
-    
-    if (!scale.is_ready()) {
-        if (!warnedNotReady) {
-            warnedNotReady = true;
-            sendErrorEvent("HX711 not ready after retry");
-            Serial.println("HX711 not ready");
+    static bool warnedReadError = false;
+    static int lastKnownWeight = 0;
+    static bool hasLastKnownWeight = false;
+
+    uint8_t received = Wire.requestFrom(static_cast<int>(WEIGHT_I2C_ADDRESS), static_cast<int>(sizeof(float)));
+    if (received != sizeof(float)) {
+        while (Wire.available()) {
+            Wire.read();
         }
-        return adjustedWeight; // Return 0 or last valid value
+        if (!warnedReadError) {
+            warnedReadError = true;
+            sendErrorEvent("Weight I2C read failed: wrong byte count");
+        }
+        return hasLastKnownWeight ? lastKnownWeight : 0;
     }
-    
-    // Reset warning flag once successfully read
-    warnedNotReady = false;
-    
-    // Read raw weight and adjust using the weight offset from settings
-    float rawWeight = scale.get_units(5); // Reduced from 10 to 5 for speed
-    adjustedWeight = (int)rawWeight; // Cast to int, already includes offset if set
-    
-    #endif
-    return adjustedWeight;
+
+    uint8_t raw[sizeof(float)] = {0};
+    for (size_t index = 0; index < sizeof(float); index++) {
+        if (!Wire.available()) {
+            if (!warnedReadError) {
+                warnedReadError = true;
+                sendErrorEvent("Weight I2C read failed: underrun");
+            }
+            return hasLastKnownWeight ? lastKnownWeight : 0;
+        }
+        raw[index] = static_cast<uint8_t>(Wire.read());
+    }
+
+    float weight = 0.0f;
+    memcpy(&weight, raw, sizeof(float));
+    if (!isfinite(weight)) {
+        if (!warnedReadError) {
+            warnedReadError = true;
+            sendErrorEvent("Weight I2C read failed: non-finite payload");
+        }
+        return hasLastKnownWeight ? lastKnownWeight : 0;
+    }
+
+    warnedReadError = false;
+    lastKnownWeight = static_cast<int>(weight);
+    hasLastKnownWeight = true;
+    Serial.print(F("[TX] weight="));
+    Serial.print(lastKnownWeight);
+    Serial.println();
+    return lastKnownWeight;
 }
 
 void resetConsumption() {
