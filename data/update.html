@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Update Firmware</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="common.js"></script>
+</head>
+<body>
+    {{#DISPLAY_BANNER}}
+    <div id="message-banner">
+        {{BANNER_MESSAGE}}
+    </div>
+    {{/DISPLAY_BANNER}}
+    <div style="grid-column:2; justify-self:end; align-self:start;width:150px;">
+        <a href="/" class="link-button" title="Return to main menu">Home</a>
+    </div>
+    <h1>Upload Update</h1>
+    <form method="POST" action="/update" enctype="multipart/form-data">
+        <div>
+            <label for="uploadType">Select Upload Type:</label>
+            <div class="radio-group">
+                <div>
+                    <input type="radio" id="firmware" name="uploadType" value="firmware" checked>
+                    <label for="firmware">Firmware</label>
+                </div>
+                <div>
+                    <input type="radio" id="filesystem" name="uploadType" value="filesystem">
+                    <label for="filesystem">Filesystem</label>
+                </div>
+            </div>
+        </div>
+        <div>
+            <label for="file">Select File:</label>
+            <input type="file" id="file" name="file" accept=".bin" required>
+        </div>
+        <button type="submit">Upload</button>
+    </form>
+
+    <!-- Log Display Area -->
+    <h3>Log</h3>
+    <div id="log"></div>
+</body>
+</html>

@@ -1,0 +1,282 @@
+html {
+    font-family: Helvetica;
+    display: inline-block;
+    margin: 0px auto;
+    text-align: left;
+    background-color: deepskyblue;
+}
+
+body {
+    font-family: Arial, sans-serif;
+margin: 20px;
+    padding: 20px;
+    background-color: #f4f4f9;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 30px;
+}
+
+h2 {
+    text-align: center
+}
+
+h3 {
+    text-align: center
+}
+
+.menu-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 50px;
+}
+
+.menu-item {
+    margin: 15px 0;
+}
+
+.menu-button {
+    display: inline-block;
+    width: 200px; /* Fixed width */
+    height: 50px; /* Fixed height */
+    line-height: 50px; /* Vertically center text */
+    font-size: 18px;
+    color: white;
+    background-color: #007bff;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center; /* Horizontally center text */
+    transition: background-color 0.3s;
+}
+
+.menu-button:hover {
+    background-color: #0056b3;
+}
+
+.link-button {
+    display: inline-block;
+    width: 80px; /* Fixed width */
+    line-height: 35px; /* Vertically center text */
+    font-size: 12px;
+    background-color: #007bff;
+    width: 100%;
+    color: beige;
+    text-align: center
+}
+
+.link-button:hover {
+    background-color: #0056b3;
+}
+
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+}
+
+.form-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Adds a subtle shadow */
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 15px;
+}
+
+label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    font-size: 12px;
+}
+
+input {
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: lightgrey;
+}
+
+input[type=text] {
+    width: 85%;
+}
+
+input.decimal {
+    width: 55px;
+}
+
+input[type=number] {
+    width: 50%;
+}
+
+input[type=password] {
+    width: 85%;
+}
+
+input[type="file"] {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+table {
+    width: 100%;
+}
+
+input[type=submit] {
+    background-color: darkblue;
+    width: 100%;
+    color: beige;
+    text-align: center
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+button:hover {
+    background-color: #0056b3;
+}
+
+p {
+    font-size: 24px;
+    color: #444444;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.center-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100%; /* Adjust as needed */
+    width: 100%; /* Adjust as needed */
+}
+
+.radio-group {
+    display: flex;
+    gap: 20px; /* Add spacing between radio buttons */
+    align-items: center;
+}
+.radio-group label {
+    margin-left: 5px; /* Add spacing between radio button and label */
+}
+
+#message-banner {
+    background-color: red;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 18px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+}
+
+.file-list {
+    padding: 10px;
+    width: 33%;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+.file-item {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+.file-item input[type="radio"] {
+    margin-right: 10px;
+}
+
+.file-item label {
+    font-size: 16px;
+    color: #333;
+}
+
+textarea#file-content {
+    font-family: monospace;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    resize: none;
+    width: 66%;
+    height: 300px;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    margin: 20px auto;
+    /* max-width: 800px; */
+    gap: 20px;
+    width: 100%;
+}
+
+#log {
+    margin-top: 30px;
+    padding: 10px;
+    height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #1e1e1e;
+    color: #00ff00;
+    font-family: monospace;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.log-entry {
+    margin: 2px 0;
+}
+
+.log-entry.log {
+    color: #00ff00;
+}
+
+.log-entry.error {
+    color: #ff0000;
+}
+
+.log-entry.warning {
+    color: #ffaa00;
+}
+
+.log-entry.debug {
+    color: #ffaa00;
+}
