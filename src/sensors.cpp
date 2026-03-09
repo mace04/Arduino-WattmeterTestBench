@@ -16,14 +16,20 @@ static_assert(sizeof(WeightCalibrationPacket) == 8, "WeightCalibrationPacket mus
     WeightCalibrationPacket packet{scale, offset};
 
     Wire.beginTransmission(WEIGHT_I2C_ADDRESS);
+    Serial.println("Sending weight calibration command with scale: " + String(scale) + " and offset: " + String(offset));
     const uint8_t* raw = reinterpret_cast<const uint8_t*>(&packet);
     Wire.write(raw, sizeof(packet));
+    Serial.println("Weight calibration command sent, awaiting response...");
     uint8_t status = Wire.endTransmission();
+    Serial.println("Weight calibration command response received, status: " + String(status));
 
     if (status != 0) {
         sendErrorEvent("Weight I2C calibration write failed");
+        Serial.print(F("[TX] weight calibration failed, status="));
+        Serial.println(status);
         return false;
     }
+    Serial.println("Weight sensor calibration command sent.");
     return true;
 }
 
@@ -143,7 +149,10 @@ void resetWeightSensor() {
     uint8_t status = Wire.endTransmission();
     if (status != 0) {
         sendErrorEvent("Weight I2C tare reset command failed");
+        Serial.print(F("[TX] weight tare reset failed, status="));
+        Serial.println(status);
     }
+    Serial.println("Weight sensor tare reset command sent.");
 }
 
 // Function to read weight in grams from I2C weight device
@@ -160,6 +169,7 @@ int readWeightSensor() {
         if (!warnedReadError) {
             warnedReadError = true;
             sendErrorEvent("Weight I2C read failed: wrong byte count");
+            Serial.print(F("[RX] weight read failed, expected "));
         }
         return hasLastKnownWeight ? lastKnownWeight : 0;
     }
@@ -170,6 +180,7 @@ int readWeightSensor() {
             if (!warnedReadError) {
                 warnedReadError = true;
                 sendErrorEvent("Weight I2C read failed: underrun");
+                Serial.print(F("[RX] weight read failed, underrun at byte index "));
             }
             return hasLastKnownWeight ? lastKnownWeight : 0;
         }
@@ -182,6 +193,8 @@ int readWeightSensor() {
         if (!warnedReadError) {
             warnedReadError = true;
             sendErrorEvent("Weight I2C read failed: non-finite payload");
+            Serial.print(F("[RX] weight read failed, non-finite payload: "));
+            Serial.println(weight);
         }
         return hasLastKnownWeight ? lastKnownWeight : 0;
     }
@@ -189,9 +202,9 @@ int readWeightSensor() {
     warnedReadError = false;
     lastKnownWeight = static_cast<int>(weight);
     hasLastKnownWeight = true;
-    Serial.print(F("[TX] weight="));
-    Serial.print(lastKnownWeight);
-    Serial.println();
+    // Serial.print(F("[TX] weight="));
+    // Serial.print(lastKnownWeight);
+    // Serial.println();
     return lastKnownWeight;
 }
 
